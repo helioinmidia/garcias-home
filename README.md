@@ -29,7 +29,8 @@ casa/                o portal, servido em casa.blizzard.net
     rotina.json      horários e atividades de cada dia da semana
     cartaz.html      o cartaz original, para imprimir
   manutencao/        Manutenção da casa
-api/rotina.py        API da rotina: o que foi feito e os comentários, por dia
+api/rotina.py        API da rotina: o que foi feito e os comentários, por dia; resumo para o HA
+homeassistant/       pacote do Home Assistant (sensores da rotina e automações)
 dados/               gravado pelas APIs no Pi (fora do git)
 ```
 
@@ -105,14 +106,42 @@ A página confere o servidor a cada 5 minutos. Quando algum arquivo dela muda (d
   revisão de domingo.
 - **Outros dias:** a faixa e as setas ‹ › mostram os dias anteriores (histórico) e os próximos. Sem
   ninguém mexendo, a tela volta sozinha para hoje depois de 3 minutos, e troca de dia à meia-noite.
+- **Cronômetro:** as atividades com `duracao` (Duolingo, tarefas da escola, projeto, mexer o corpo) têm um
+  botão "▶ 20 min" ao lado da hora. O toque inicia a contagem regressiva na própria linha e no cabeçalho;
+  no fim toca um sino e o botão pisca até alguém tocar. O cronômetro é do aparelho (não vai ao servidor) e
+  sobrevive a um recarregamento da página.
+- **Agenda do dia:** abaixo da data, um botão mostra a agenda em uso ("Dia de escola", "Dia sem escola",
+  "Sábado"…). A escolha é automática: exceção do calendário (`excecoes` no `rotina.json`: feriados, férias)
+  ou o dia da semana. Toque no botão para trocar a agenda daquele dia, por exemplo "Dia sem escola" num
+  imprevisto; a troca fica gravada no dia, vale para todos os aparelhos, e "Voltar ao automático" desfaz.
 - **Mudar horários ou atividades:** edite `casa/rotina/rotina.json`.
-  - `diasDaSemana` vai de 0 (domingo) a 6 (sábado).
-  - `horaPorDia` e `descricaoPorDia` trocam a hora ou o texto em dias específicos.
+  - `agendas`: cada uma tem `id`, `nome`, `diasDaSemana` (0 = domingo … 6 = sábado; `[]` para uma agenda
+    que só entra por exceção ou pelo botão, como `folga`) e os `blocos` de atividades.
+  - `excecoes`: `{"de", "ate", "agenda", "motivo"}`; num intervalo, aquele dia usa essa agenda.
+  - `horaPorDia` e `descricaoPorDia` trocam a hora ou o texto em dias específicos; `duracao` (minutos)
+    liga o cronômetro.
   - `quem` são as pessoas que devem estar e `podem` as que podem estar.
   - Mantenha o `id` de uma atividade ao editá-la: é por ele que as marcações antigas são encontradas.
 
 Para conferir a API no Pi: `curl -s -H 'Host: casa.blizzard.net' http://127.0.0.1/rotina/api/saude`.
-As rotas estão no cabeçalho de `api/rotina.py` (`/dia/<data>`, `/dias?de=&ate=`, `PUT /dia/<data>/tarefa/<id>`).
+As rotas estão no cabeçalho de `api/rotina.py` (`/dia/<data>`, `/dias?de=&ate=`, `/resumo`,
+`PUT /dia/<data>/tarefa/<id>`, `PUT /dia/<data>/agenda`).
+
+## Rotina no Home Assistant
+
+`GET http://casa.blizzard.net/rotina/api/resumo` devolve o dia de hoje resumido: agenda, total, feitas,
+percentual, atividade de agora, próxima, atrasadas (já começaram e não foram marcadas) e se o dia fechou.
+O pacote `homeassistant/rotina.yaml` cria os sensores REST a partir dele e três automações de exemplo:
+anunciar a atividade no Echo Show quando ela começa, avisar os pais às 21:30 do que ficou pendente e
+comemorar o dia completo. Instalação:
+
+```bash
+scp homeassistant/rotina.yaml root@dash.blizzard.net:/config/packages/rotina.yaml
+```
+
+e, em `configuration.yaml`, `homeassistant: packages: !include_dir_named packages` (se ainda não houver).
+Recarregue o YAML ou reinicie o HA. As entidades ficam `sensor.rotina_ana_liz_*` e
+`binary_sensor.rotina_ana_liz_dia_completo`.
 
 ## Publicar uma aplicação com servidor próprio
 

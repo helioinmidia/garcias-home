@@ -42,7 +42,31 @@ button { font: inherit; color: inherit; }
   font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer; color: var(--apagado);
 }
 .nav button.hoje { width: auto; padding: 0 14px; font-size: 14px; color: var(--acento); border-color: var(--acento); }
+.agenda { position: relative; margin-top: 8px; }
+.agenda-btn {
+  border: 2px solid var(--borda); background: var(--cartao); border-radius: 999px; padding: 5px 12px 5px 10px;
+  font-size: 13px; font-weight: 800; color: var(--texto); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.agenda-btn::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--acento); }
+.agenda-btn.trocada { border-color: #F2DDA0; background: #FFF7E0; }
+.agenda-btn.trocada::before { background: #C99A1E; }
+.agenda-btn small { font-weight: 700; color: var(--apagado); }
+.agenda-menu {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; min-width: 240px; padding: 6px;
+  background: var(--cartao); border: 2px solid var(--borda); border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.agenda-menu button {
+  border: none; background: none; text-align: left; padding: 10px 12px; border-radius: 10px; font-weight: 700; cursor: pointer;
+  display: flex; justify-content: space-between; gap: 12px; align-items: center;
+}
+.agenda-menu button:hover { background: var(--papel); }
+.agenda-menu button.ativa { background: var(--agora); color: var(--acento-escuro); }
+.agenda-menu button small { font-weight: 700; color: var(--apagado); }
+.agenda-menu .sep { border-top: 1px dashed var(--tracejado); margin: 4px 6px; }
 .relogio { text-align: right; }
+.cron-topo { margin: 4px 0 0; font-family: var(--serif); font-weight: 800; font-size: 22px; color: var(--acento); font-variant-numeric: tabular-nums; }
+.cron-topo small { font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; color: var(--apagado); margin-left: 6px; }
 .hora { font-family: var(--serif); font-weight: 800; font-size: clamp(40px, 6vw, 64px); line-height: 1; font-variant-numeric: tabular-nums; }
 .hora small { font-size: 0.42em; color: var(--apagado); margin-left: 2px; }
 .agora-txt { margin: 6px 0 0; font-size: 15px; font-weight: 700; color: var(--texto); max-width: 420px; }
@@ -118,6 +142,20 @@ main, .conteudo { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; di
 .feito .t-desc { color: var(--apagado); }
 .feito-em { font-size: 13px; font-weight: 700; color: var(--feito); }
 
+/* Cronômetro das atividades com duração (Duolingo, tarefas, projeto…). Local a cada aparelho. */
+.cron-btn {
+  margin-top: 6px; border: 2px solid var(--borda); background: var(--cartao); border-radius: 999px; padding: 4px 10px;
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; color: var(--acento); cursor: pointer; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cron-btn.rodando { background: var(--acento); border-color: var(--acento); color: #fff; font-size: 15px; }
+.cron-btn.acabou { background: var(--feito); border-color: var(--feito); color: #fff; animation: pulsa 1s ease-in-out infinite; }
+.cron-barra { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: #EFE6D8; overflow: hidden; margin-top: 4px; }
+.cron-barra i { display: block; height: 100%; width: 0; background: var(--acento); border-radius: 999px; transition: width 1s linear; }
+.tarefa.cronometrando { box-shadow: inset 0 0 0 2px var(--acento); background: #FFF9F3; border-top-color: transparent; }
+.tarefa.cronometrando + .tarefa { border-top-color: transparent; }
+@keyframes pulsa { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
 .tarefa.atual { background: var(--agora); box-shadow: inset 0 0 0 2px #F1C6AA; border-top-color: transparent; }
 .tarefa.atual + .tarefa { border-top-color: transparent; }
 .tag-agora {
@@ -160,7 +198,10 @@ main, .conteudo { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; di
   .nav button { width: 34px; height: 34px; font-size: 18px; }
   .nav button.hoje { padding: 0 10px; font-size: 13px; }
   .data { font-size: 14px; }
+  .agenda { margin-top: 4px; }
+  .agenda-btn { font-size: 12px; padding: 3px 10px 3px 8px; }
   .hora { font-size: 34px; }
+  .cron-topo { font-size: 18px; text-align: right; }
   .agora-txt { grid-column: 1 / -1; order: 3; margin: 4px 0 0; font-size: 14px; max-width: none; text-align: left; }
   .relogio { display: contents; }
   .hora { grid-column: 2; grid-row: 1; text-align: right; }

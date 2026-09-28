@@ -2,85 +2,137 @@
   "titulo": "Rotina da Ana Liz",
   "subtitulo": "7 anos · escola à tarde",
   "pessoas": {
-    "mae": { "nome": "Mãe", "fundo": "#F0A3B5", "texto": "#4A1524", "contorno": "#B04A66" },
-    "pai": { "nome": "Pai", "fundo": "#9CC7E8", "texto": "#0F3350", "contorno": "#2C6A9E" },
-    "fam": { "nome": "Família toda", "fundo": "#D9A5E0", "texto": "#3E1247", "contorno": "#8A3E96" },
-    "esc": { "nome": "Escola", "fundo": "#C9C3B8", "texto": "#2B2A28", "contorno": "#5E5A54" },
-    "mst": { "nome": "Mestre de taekwondo", "fundo": "#A8D5B0", "texto": "#10391A", "contorno": "#2E7A3D" }
+    "mae": {"nome": "Mãe", "fundo": "#F0A3B5", "texto": "#4A1524", "contorno": "#B04A66"},
+    "pai": {"nome": "Pai", "fundo": "#9CC7E8", "texto": "#0F3350", "contorno": "#2C6A9E"},
+    "fam": {"nome": "Família toda", "fundo": "#D9A5E0", "texto": "#3E1247", "contorno": "#8A3E96"},
+    "esc": {"nome": "Escola", "fundo": "#C9C3B8", "texto": "#2B2A28", "contorno": "#5E5A54"},
+    "mst": {"nome": "Mestre de taekwondo", "fundo": "#A8D5B0", "texto": "#10391A", "contorno": "#2E7A3D"}
   },
+  "excecoes": [
+    {"de": "2026-10-12", "ate": "2026-10-12", "agenda": "folga", "motivo": "Feriado de Nossa Senhora Aparecida"},
+    {"de": "2026-11-02", "ate": "2026-11-02", "agenda": "folga", "motivo": "Finados"},
+    {"de": "2026-11-20", "ate": "2026-11-20", "agenda": "folga", "motivo": "Dia da Consciência Negra"},
+    {"de": "2026-12-25", "ate": "2026-12-25", "agenda": "folga", "motivo": "Natal"},
+    {"de": "2027-01-01", "ate": "2027-01-01", "agenda": "folga", "motivo": "Ano Novo"}
+  ],
   "agendas": [
     {
       "id": "semana",
+      "nome": "Dia de escola",
       "diasDaSemana": [1, 2, 3, 4, 5],
       "blocos": [
         {
           "titulo": "Manhã",
           "subtitulo": "o melhor horário do dia",
           "tarefas": [
-            { "id": "acordar", "hora": "09:00", "titulo": "A persiana abriu: acorde", "descricao": "Deixe a luz do sol ser seu despertador. Espreguice uns minutos na cama, ganhe um abraço e comece o dia devagar." },
-            { "id": "cama", "hora": "09:05", "titulo": "Arrume a cama", "descricao": "Estique o lençol, ajeite o travesseiro e guarde o pijama." },
-            { "id": "banheiro", "hora": "09:10", "titulo": "Vá ao banheiro, lave o rosto e escove os dentes", "descricao": "Escove os dentes por dois minutos (cante uma música para marcar o tempo), troque de roupa e penteie o cabelo." },
-            { "id": "cafe", "hora": "09:25", "titulo": "Desça para o café da manhã", "descricao": "Ajude a pôr a mesa e tome café com a mamãe e o papai. Converse com eles e veja qual é o projeto da manhã de hoje.", "quem": ["mae", "pai"] },
-            { "id": "duolingo", "hora": "09:40", "titulo": "Faça a lição de inglês no Duolingo (20 min)", "descricao": "Faça a lição de inglês do dia, mantenha sua sequência e depois guarde o aparelho." },
-            { "id": "tarefas-escola", "hora": "10:00", "titulo": "Faça as tarefas da escola (20 min)", "descricao": "Olhe a agenda, faça a lição de casa e separe o material do dia. Fazendo de manhã, a noite fica livre para descansar. Se tiver dúvida, chame a mamãe ou o papai.", "quem": ["pai"], "podem": ["mae"] },
-            { "id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"] },
-            { "id": "mexer-corpo", "hora": "11:00", "titulo": "Mexa o corpo", "descricao": "Ande de bicicleta, brinque no quintal, pule corda ou caminhe (25 min). Gaste energia agora para prestar atenção na escola." },
-            { "id": "brincar-manha", "hora": "11:25", "titulo": "Brinque, leia ou desenhe", "descricao": "Brinque, leia um livro ou desenhe no seu caderno." },
-            { "id": "banho-escola", "hora": "11:50", "titulo": "Tome banho e arrume-se para a escola", "descricao": "Tome banho, vista o uniforme que você separou ontem à noite, penteie o cabelo e calce o tênis." },
-            { "id": "almoco", "hora": "12:10", "titulo": "Almoce", "descricao": "Almoce com calma, já arrumada para a escola (use um guardanapo grande para proteger o uniforme). Ajude a pôr a mesa e tire o seu prato.", "quem": ["mae"], "podem": ["pai"] },
-            { "id": "mochila", "hora": "12:40", "titulo": "Escove os dentes e feche a mochila", "descricao": "Escove os dentes, feche a mochila (a tarefa já está pronta) e coloque seu caderninho de desenho dentro. Esteja pronta às 12:50." }
+            {"id": "acordar", "hora": "09:00", "titulo": "A persiana abriu: acorde", "descricao": "Deixe a luz do sol ser seu despertador. Espreguice uns minutos na cama, ganhe um abraço e comece o dia devagar."},
+            {"id": "cama", "hora": "09:05", "titulo": "Arrume a cama", "descricao": "Estique o lençol, ajeite o travesseiro e guarde o pijama."},
+            {"id": "banheiro", "hora": "09:10", "titulo": "Vá ao banheiro, lave o rosto e escove os dentes", "descricao": "Escove os dentes por dois minutos (cante uma música para marcar o tempo), troque de roupa e penteie o cabelo."},
+            {"id": "cafe", "hora": "09:25", "titulo": "Desça para o café da manhã", "descricao": "Ajude a pôr a mesa e tome café com a mamãe e o papai. Converse com eles e veja qual é o projeto da manhã de hoje.", "quem": ["mae", "pai"]},
+            {"id": "duolingo", "hora": "09:40", "titulo": "Faça a lição de inglês no Duolingo (20 min)", "descricao": "Faça a lição de inglês do dia, mantenha sua sequência e depois guarde o aparelho.", "duracao": 20},
+            {"id": "tarefas-escola", "hora": "10:00", "titulo": "Faça as tarefas da escola (20 min)", "descricao": "Olhe a agenda, faça a lição de casa e separe o material do dia. Fazendo de manhã, a noite fica livre para descansar. Se tiver dúvida, chame a mamãe ou o papai.", "quem": ["pai"], "podem": ["mae"], "duracao": 20},
+            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40},
+            {"id": "mexer-corpo", "hora": "11:00", "titulo": "Mexa o corpo", "descricao": "Ande de bicicleta, brinque no quintal, pule corda ou caminhe (25 min). Gaste energia agora para prestar atenção na escola.", "duracao": 25},
+            {"id": "brincar-manha", "hora": "11:25", "titulo": "Brinque, leia ou desenhe", "descricao": "Brinque, leia um livro ou desenhe no seu caderno."},
+            {"id": "banho-escola", "hora": "11:50", "titulo": "Tome banho e arrume-se para a escola", "descricao": "Tome banho, vista o uniforme que você separou ontem à noite, penteie o cabelo e calce o tênis."},
+            {"id": "almoco", "hora": "12:10", "titulo": "Almoce", "descricao": "Almoce com calma, já arrumada para a escola (use um guardanapo grande para proteger o uniforme). Ajude a pôr a mesa e tire o seu prato.", "quem": ["mae"], "podem": ["pai"]},
+            {"id": "mochila", "hora": "12:40", "titulo": "Escove os dentes e feche a mochila", "descricao": "Escove os dentes, feche a mochila (a tarefa já está pronta) e coloque seu caderninho de desenho dentro. Esteja pronta às 12:50."}
           ]
         },
         {
           "titulo": "Tarde",
           "subtitulo": "escola",
           "tarefas": [
-            { "id": "ir-escola", "hora": "12:50", "titulo": "Vá para a escola", "descricao": "Vá com a mamãe ou o papai e converse no caminho.", "quem": ["mae"], "podem": ["pai"] },
-            { "id": "escola", "hora": "13:00", "ate": "17:30", "titulo": "Escola", "descricao": "Aproveite para ver os amigos e aprender coisas novas.", "quem": ["esc"] }
+            {"id": "ir-escola", "hora": "12:50", "titulo": "Vá para a escola", "descricao": "Vá com a mamãe ou o papai e converse no caminho.", "quem": ["mae"], "podem": ["pai"]},
+            {"id": "escola", "hora": "13:00", "ate": "17:30", "titulo": "Escola", "descricao": "Aproveite para ver os amigos e aprender coisas novas.", "quem": ["esc"]}
           ]
         },
         {
           "titulo": "Fim de tarde e noite",
           "subtitulo": "em família",
           "tarefas": [
-            { "id": "lanche", "hora": "18:00", "titulo": "Chegue, lanche e descanse", "descricao": "Faça um lanche e aproveite meia hora com a mamãe ou o papai. Conte como foi o seu dia.", "quem": ["mae"], "podem": ["pai"] },
-            { "id": "brincar-tarde", "hora": "18:30", "titulo": "Brinque ao ar livre ou jogue", "descricao": "Vá à praça, ande de bicicleta, jogue em família ou desenhe enquanto o jantar fica pronto.", "descricaoPorDia": { "1": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair.", "3": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair." }, "quem": ["pai"], "podem": ["mae"] },
-            { "id": "taekwondo", "hora": "19:00", "diasDaSemana": [1, 3], "titulo": "Vá ao taekwondo", "descricao": "Treine com vontade! A mamãe ou o papai leva você e, quando der, fica assistindo.", "quem": ["mst", "pai"], "podem": ["mae"] },
-            { "id": "jantar", "hora": "19:45", "horaPorDia": { "1": "20:15", "3": "20:15" }, "titulo": "Jante em família e faça sua tarefa", "descricao": "Jante com todo mundo junto. Ponha a mesa, regue a planta ou guarde os pratos. Nos dias de taekwondo, o jantar espera você.", "quem": ["fam"] },
-            { "id": "preparar-dormir", "hora": "21:00", "titulo": "Prepare-se para dormir", "descricao": "Tome banho, vista o pijama, escove os dentes e separe a roupa de amanhã. Depois escute a leitura da mamãe ou do papai.", "quem": ["mae", "pai"] },
-            { "id": "dormir", "hora": "22:00", "titulo": "Apague a luz e durma", "descricao": "Durma sempre na mesma hora, até no fim de semana. Das 22h às 9h, seu corpo descansa as 11 horas de que precisa." }
+            {"id": "lanche", "hora": "18:00", "titulo": "Chegue, lanche e descanse", "descricao": "Faça um lanche e aproveite meia hora com a mamãe ou o papai. Conte como foi o seu dia.", "quem": ["mae"], "podem": ["pai"]},
+            {"id": "brincar-tarde", "hora": "18:30", "titulo": "Brinque ao ar livre ou jogue", "descricao": "Vá à praça, ande de bicicleta, jogue em família ou desenhe enquanto o jantar fica pronto.", "descricaoPorDia": {"1": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair.", "3": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair."}, "quem": ["pai"], "podem": ["mae"]},
+            {"id": "taekwondo", "hora": "19:00", "diasDaSemana": [1, 3], "titulo": "Vá ao taekwondo", "descricao": "Treine com vontade! A mamãe ou o papai leva você e, quando der, fica assistindo.", "quem": ["mst", "pai"], "podem": ["mae"]},
+            {"id": "jantar", "hora": "19:45", "horaPorDia": {"1": "20:15", "3": "20:15"}, "titulo": "Jante em família e faça sua tarefa", "descricao": "Jante com todo mundo junto. Ponha a mesa, regue a planta ou guarde os pratos. Nos dias de taekwondo, o jantar espera você.", "quem": ["fam"]},
+            {"id": "preparar-dormir", "hora": "21:00", "titulo": "Prepare-se para dormir", "descricao": "Tome banho, vista o pijama, escove os dentes e separe a roupa de amanhã. Depois escute a leitura da mamãe ou do papai.", "quem": ["mae", "pai"]},
+            {"id": "dormir", "hora": "22:00", "titulo": "Apague a luz e durma", "descricao": "Durma sempre na mesma hora, até no fim de semana. Das 22h às 9h, seu corpo descansa as 11 horas de que precisa."}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "folga",
+      "nome": "Dia sem escola",
+      "diasDaSemana": [],
+      "blocos": [
+        {
+          "titulo": "Manhã",
+          "subtitulo": "como todo dia",
+          "tarefas": [
+            {"id": "acordar", "hora": "09:00", "titulo": "A persiana abriu: acorde", "descricao": "Deixe a luz do sol ser seu despertador. Espreguice uns minutos na cama, ganhe um abraço e comece o dia devagar."},
+            {"id": "cama", "hora": "09:05", "titulo": "Arrume a cama", "descricao": "Estique o lençol, ajeite o travesseiro e guarde o pijama."},
+            {"id": "banheiro", "hora": "09:10", "titulo": "Vá ao banheiro, lave o rosto e escove os dentes", "descricao": "Escove os dentes por dois minutos (cante uma música para marcar o tempo), troque de roupa e penteie o cabelo."},
+            {"id": "cafe", "hora": "09:25", "titulo": "Desça para o café da manhã", "descricao": "Ajude a pôr a mesa e tome café com a mamãe e o papai. Converse com eles e veja qual é o projeto da manhã de hoje.", "quem": ["mae", "pai"]},
+            {"id": "duolingo", "hora": "09:40", "titulo": "Faça a lição de inglês no Duolingo (20 min)", "descricao": "Faça a lição de inglês do dia, mantenha sua sequência e depois guarde o aparelho.", "duracao": 20},
+            {"id": "tarefas-escola", "hora": "10:00", "titulo": "Faça as tarefas da escola (20 min)", "descricao": "Olhe a agenda, faça a lição de casa e separe o material do dia. Fazendo de manhã, a noite fica livre para descansar. Se tiver dúvida, chame a mamãe ou o papai.", "quem": ["pai"], "podem": ["mae"], "duracao": 20},
+            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40},
+            {"id": "mexer-corpo", "hora": "11:00", "titulo": "Mexa o corpo", "descricao": "Ande de bicicleta, brinque no quintal, pule corda ou caminhe (25 min). Gaste energia agora para prestar atenção na escola.", "duracao": 25},
+            {"id": "brincar-manha", "hora": "11:25", "titulo": "Brinque, leia ou desenhe", "descricao": "Brinque, leia um livro ou desenhe no seu caderno."},
+            {"id": "almoco", "hora": "12:10", "titulo": "Almoce", "descricao": "Almoce com calma e ajude a pôr a mesa e a tirar o seu prato.", "quem": ["mae"], "podem": ["pai"]}
+          ]
+        },
+        {
+          "titulo": "Tarde",
+          "subtitulo": "livre",
+          "tarefas": [
+            {"id": "folga-tarde", "hora": "13:30", "rotulo": "Tarde", "titulo": "Tarde livre: brinque, passeie ou crie", "descricao": "Sem escola hoje. Vá à praça, ande de bicicleta, desenhe, leia ou continue o projeto da manhã com a mamãe ou o papai.", "quem": ["fam"]},
+            {"id": "folga-banho", "hora": "17:30", "titulo": "Tome banho e guarde os brinquedos", "descricao": "Banho, roupa limpa e o quarto arrumado antes do jantar."}
+          ]
+        },
+        {
+          "titulo": "Fim de tarde e noite",
+          "subtitulo": "em família",
+          "tarefas": [
+            {"id": "brincar-tarde", "hora": "18:30", "titulo": "Brinque ao ar livre ou jogue", "descricao": "Vá à praça, ande de bicicleta, jogue em família ou desenhe enquanto o jantar fica pronto.", "descricaoPorDia": {"1": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair.", "3": "Vá à praça, ande de bicicleta, jogue em família ou desenhe. Hoje tem taekwondo: vista o dobok e prepare-se para sair."}, "quem": ["pai"], "podem": ["mae"]},
+            {"id": "taekwondo", "hora": "19:00", "diasDaSemana": [1, 3], "titulo": "Vá ao taekwondo", "descricao": "Treine com vontade! A mamãe ou o papai leva você e, quando der, fica assistindo.", "quem": ["mst", "pai"], "podem": ["mae"]},
+            {"id": "jantar", "hora": "19:45", "horaPorDia": {"1": "20:15", "3": "20:15"}, "titulo": "Jante em família e faça sua tarefa", "descricao": "Jante com todo mundo junto. Ponha a mesa, regue a planta ou guarde os pratos. Nos dias de taekwondo, o jantar espera você.", "quem": ["fam"]},
+            {"id": "preparar-dormir", "hora": "21:00", "titulo": "Prepare-se para dormir", "descricao": "Tome banho, vista o pijama, escove os dentes e separe a roupa de amanhã. Depois escute a leitura da mamãe ou do papai.", "quem": ["mae", "pai"]},
+            {"id": "dormir", "hora": "22:00", "titulo": "Apague a luz e durma", "descricao": "Durma sempre na mesma hora, até no fim de semana. Das 22h às 9h, seu corpo descansa as 11 horas de que precisa."}
           ]
         }
       ]
     },
     {
       "id": "sabado",
+      "nome": "Sábado",
       "diasDaSemana": [6],
       "blocos": [
         {
           "titulo": "Sábado",
           "subtitulo": "passeios e tempo livre",
           "tarefas": [
-            { "id": "sab-passeio", "hora": "09:00", "rotulo": "Manhã", "titulo": "Passeie e descubra", "descricao": "Vá a um museu, feira, biblioteca, ateliê ou à natureza. Leve seu caderno de desenho.", "quem": ["fam"] },
-            { "id": "sab-almoco", "hora": "13:00", "titulo": "Almoce em família", "descricao": "Ajude a pôr a mesa e conte o que viu no passeio.", "quem": ["fam"] },
-            { "id": "sab-projeto", "hora": "14:30", "rotulo": "Tarde", "titulo": "Faça um projeto grande com a mamãe ou o papai", "descricao": "Crie seu livro ilustrado ou um mural com as palavras em inglês que aprendeu no Duolingo.", "quem": ["pai"], "podem": ["mae"] },
-            { "id": "sab-filme", "hora": "19:30", "rotulo": "Noite", "titulo": "Veja um filme ou jogue em família", "descricao": "Junte todo mundo no sofá.", "quem": ["fam"] }
+            {"id": "sab-passeio", "hora": "09:00", "rotulo": "Manhã", "titulo": "Passeie e descubra", "descricao": "Vá a um museu, feira, biblioteca, ateliê ou à natureza. Leve seu caderno de desenho.", "quem": ["fam"]},
+            {"id": "sab-almoco", "hora": "13:00", "titulo": "Almoce em família", "descricao": "Ajude a pôr a mesa e conte o que viu no passeio.", "quem": ["fam"]},
+            {"id": "sab-projeto", "hora": "14:30", "rotulo": "Tarde", "titulo": "Faça um projeto grande com a mamãe ou o papai", "descricao": "Crie seu livro ilustrado ou um mural com as palavras em inglês que aprendeu no Duolingo.", "quem": ["pai"], "podem": ["mae"]},
+            {"id": "sab-filme", "hora": "19:30", "rotulo": "Noite", "titulo": "Veja um filme ou jogue em família", "descricao": "Junte todo mundo no sofá.", "quem": ["fam"]}
           ]
         }
       ]
     },
     {
       "id": "domingo",
+      "nome": "Domingo",
       "diasDaSemana": [0],
       "blocos": [
         {
           "titulo": "Domingo",
           "subtitulo": "passeios e tempo livre",
           "tarefas": [
-            { "id": "dom-livre", "hora": "09:00", "rotulo": "Manhã", "titulo": "Aproveite o tempo livre", "descricao": "Nada marcado. Desenhe, brinque, descanse e invente." },
-            { "id": "dom-almoco", "hora": "13:00", "titulo": "Almoce com a família ou amigos", "descricao": "Encontre os avós, primos ou amigos de fora da escola.", "quem": ["fam"] },
-            { "id": "dom-revisao", "hora": "17:00", "titulo": "Revise a semana com a mamãe e o papai", "descricao": "Mostre o que aprendeu: os desenhos, a página dos quadrinhos, a pesquisa e as tarefas da escola. Fale em voz alta as palavras novas em inglês e mostre sua sequência de dias.", "quem": ["mae", "pai"] },
-            { "id": "dom-planejar", "hora": "20:00", "rotulo": "Noite", "titulo": "Planeje a semana e prepare-se para dormir", "descricao": "Veja com a mamãe e o papai os projetos da manhã da semana que vem. Depois, tome banho e escute a leitura como nos outros dias.", "quem": ["mae", "pai"] }
+            {"id": "dom-livre", "hora": "09:00", "rotulo": "Manhã", "titulo": "Aproveite o tempo livre", "descricao": "Nada marcado. Desenhe, brinque, descanse e invente."},
+            {"id": "dom-almoco", "hora": "13:00", "titulo": "Almoce com a família ou amigos", "descricao": "Encontre os avós, primos ou amigos de fora da escola.", "quem": ["fam"]},
+            {"id": "dom-revisao", "hora": "17:00", "titulo": "Revise a semana com a mamãe e o papai", "descricao": "Mostre o que aprendeu: os desenhos, a página dos quadrinhos, a pesquisa e as tarefas da escola. Fale em voz alta as palavras novas em inglês e mostre sua sequência de dias.", "quem": ["mae", "pai"]},
+            {"id": "dom-planejar", "hora": "20:00", "rotulo": "Noite", "titulo": "Planeje a semana e prepare-se para dormir", "descricao": "Veja com a mamãe e o papai os projetos da manhã da semana que vem. Depois, tome banho e escute a leitura como nos outros dias.", "quem": ["mae", "pai"]}
           ]
         }
       ]

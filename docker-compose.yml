@@ -27,8 +27,11 @@ services:
     volumes:
       - ./api:/app:ro
       - ./dados:/dados
+      # A API lê a definição da rotina para resumir o dia ao Home Assistant (/resumo).
+      - ./casa/rotina/rotina.json:/rotina.json:ro
     environment:
       - DADOS_DIR=/dados/rotina
+      - ROTINA_JSON=/rotina.json
       - PORT=8081
       - BIND=127.0.0.1
       - TZ=America/Sao_Paulo

@@ -25,7 +25,8 @@
   var rotina = null; // rotina.json
   var dataVista = hojeChave(); // AAAA-MM-DD do dia na tela
   var tarefas = []; // tarefas do dia na tela, já resolvidas (hora, descrição do dia)
-  var estado = { tarefas: {}, revisao: -1 }; // vindo do servidor
+  var estado = { tarefas: {}, revisao: -1, agenda: null }; // vindo do servidor
+  var agendaVista = null; // id da agenda desenhada na tela (para redesenhar se ela mudar)
   var semana = {}; // AAAA-MM-DD -> dia vindo do servidor (para a faixa da semana)
   var linhas = {}; // id -> elementos da linha
   var editando = {}; // id -> timer do comentário em edição
@@ -49,9 +50,24 @@
   }
 
   // ---------- rotina do dia ----------
+  function agendaPorId(id) {
+    return (rotina.agendas || []).filter(function (a) { return a.id === id; })[0] || null;
+  }
+
+  // Agenda de um dia: a trocada na tela (gravada no dia) > exceção do rotina.json (feriado, férias) > dia da semana.
+  function agendaDoDia(k) {
+    var dia = k === dataVista ? estado : semana[k];
+    if (dia && dia.agenda && agendaPorId(dia.agenda)) return { agenda: agendaPorId(dia.agenda), origem: 'tela', motivo: null };
+    var exc = (rotina.excecoes || []).filter(function (e) { return e.de <= k && k <= (e.ate || e.de) && agendaPorId(e.agenda); })[0];
+    if (exc) return { agenda: agendaPorId(exc.agenda), origem: 'excecao', motivo: exc.motivo || null };
+    var dow = deChave(k).getDay();
+    var padrao = (rotina.agendas || []).filter(function (a) { return (a.diasDaSemana || []).indexOf(dow) >= 0; })[0] || null;
+    return { agenda: padrao, origem: 'semana', motivo: null };
+  }
+
   function tarefasDoDia(k) {
     var dow = deChave(k).getDay();
-    var agenda = (rotina.agendas || []).filter(function (a) { return (a.diasDaSemana || []).indexOf(dow) >= 0; })[0];
+    var agenda = agendaDoDia(k).agenda;
     if (!agenda) return [];
     var lista = [];
     agenda.blocos.forEach(function (bloco, b) {
@@ -64,6 +80,7 @@
           rotulo: t.rotulo || null,
           ate: t.ate || null,
           titulo: t.titulo,
+          duracao: t.duracao > 0 ? t.duracao : null,
           descricao: (t.descricaoPorDia && t.descricaoPorDia[dow]) || t.descricao || '',
           quem: t.quem || [],
           podem: t.podem || [],
@@ -107,6 +124,7 @@
     lista.textContent = '';
     linhas = {};
     tarefas = tarefasDoDia(dataVista);
+    agendaVista = (agendaDoDia(dataVista).agenda || {}).id || null;
 
     if (dataVista !== hojeChave()) {
       var aviso = el('p', 'aviso-dia');
@@ -134,6 +152,7 @@
       doBloco.forEach(function (t) { sec.append(linhaTarefa(t)); });
       lista.append(sec);
     });
+    if (cron && cron.data === dataVista && linhas[cron.id]) desenhaCronometro(linhas[cron.id], cron);
   }
 
   function linhaTarefa(t) {
@@ -143,6 +162,17 @@
     var hora = el('div', 't-hora', t.rotulo || t.hora);
     if (t.ate) hora.append(el('small', null, 'até ' + t.ate));
     else if (t.rotulo) hora.append(el('small', null, 'a partir das ' + t.hora));
+    var cronBtn = null, cronBarra = null;
+    if (t.duracao) {
+      cronBtn = el('button', 'cron-btn', '▶ ' + t.duracao + ' min');
+      cronBtn.type = 'button';
+      cronBtn.setAttribute('aria-label', 'Cronômetro de ' + t.duracao + ' minutos para "' + t.titulo + '"');
+      cronBtn.onclick = function () { toqueCronometro(t); };
+      hora.append(cronBtn);
+      cronBarra = el('div', 'cron-barra');
+      cronBarra.append(el('i'));
+      cronBarra.hidden = true;
+    }
 
     var corpo = el('div', 't-corpo');
     var tag = el('span', 'tag-agora', 'Agora');
@@ -182,6 +212,7 @@
     edicao.append(area, rod);
 
     linha.append(hora, corpo, acoes, edicao);
+    if (cronBarra) linha.append(cronBarra);
 
     check.onclick = function () { alternaFeito(t.id); };
     bc.onclick = function () {
@@ -198,7 +229,7 @@
     };
     area.onblur = function () { salvaComentarioAgora(t.id); };
 
-    linhas[t.id] = { linha: linha, tag: tag, check: check, feitoEm: feitoEm, previa: previa, bc: bc, edicao: edicao, area: area, situacao: situacao };
+    linhas[t.id] = { linha: linha, tag: tag, check: check, feitoEm: feitoEm, previa: previa, bc: bc, edicao: edicao, area: area, situacao: situacao, cronBtn: cronBtn, cronBarra: cronBarra, tarefa: t };
     return linha;
   }
 
@@ -289,6 +320,70 @@
     $('dia-data').textContent = dataLonga(dataVista) + ' de ' + d.getFullYear();
     $('dia-hoje').hidden = dataVista === hojeChave();
     document.title = DIAS[d.getDay()] + ' · ' + (rotina ? rotina.titulo : 'Rotina');
+    atualizaAgendaBtn();
+  }
+
+  // Botão da agenda do dia ("Dia de escola", "Dia sem escola · Feriado…"); toque abre o menu para trocar.
+  function atualizaAgendaBtn() {
+    var btn = $('agenda-btn');
+    if (!rotina || !(rotina.agendas || []).length) { btn.hidden = true; return; }
+    var r = agendaDoDia(dataVista);
+    btn.textContent = '';
+    btn.append(r.agenda ? (r.agenda.nome || r.agenda.id) : 'Sem agenda');
+    if (r.origem === 'excecao' && r.motivo) btn.append(el('small', null, '· ' + r.motivo));
+    if (r.origem === 'tela') btn.append(el('small', null, '· trocada'));
+    btn.classList.toggle('trocada', r.origem !== 'semana');
+    btn.hidden = false;
+  }
+
+  function abreMenuAgenda() {
+    var menu = $('agenda-menu'), btn = $('agenda-btn');
+    if (!menu.hidden) { fechaMenuAgenda(); return; }
+    menu.textContent = '';
+    var r = agendaDoDia(dataVista);
+    (rotina.agendas || []).forEach(function (a) {
+      var b = el('button', r.agenda && r.agenda.id === a.id ? 'ativa' : null);
+      b.type = 'button';
+      b.setAttribute('role', 'menuitemradio');
+      b.setAttribute('aria-checked', r.agenda && r.agenda.id === a.id ? 'true' : 'false');
+      b.append(a.nome || a.id);
+      if (r.agenda && r.agenda.id === a.id) b.append(el('small', null, 'hoje'));
+      b.onclick = function () { trocaAgenda(a.id); };
+      menu.append(b);
+    });
+    if (r.origem === 'tela') {
+      menu.append(el('div', 'sep'));
+      var auto = el('button', null, 'Voltar ao automático');
+      auto.type = 'button';
+      auto.append(el('small', null, 'pelo calendário'));
+      auto.onclick = function () { trocaAgenda(null); };
+      menu.append(auto);
+    }
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function fechaMenuAgenda() {
+    $('agenda-menu').hidden = true;
+    $('agenda-btn').setAttribute('aria-expanded', 'false');
+  }
+
+  function trocaAgenda(id) {
+    fechaMenuAgenda();
+    ultimaInteracao = Date.now();
+    geracao++;
+    var anterior = estado.agenda;
+    estado.agenda = id;
+    var novaId = (agendaDoDia(dataVista).agenda || {}).id || null;
+    if (novaId !== agendaVista) { desenhaLista(); }
+    atualizaCabecalho();
+    atualizaTudo();
+    pede('PUT', '/dia/' + dataVista + '/agenda', { agenda: id })
+      .then(function (dia) { aplica(dia); toast(''); })
+      .catch(function () {
+        estado.agenda = anterior;
+        desenhaLista(); atualizaCabecalho(); atualizaTudo();
+        toast('Não consegui trocar a agenda. Confira a conexão e tente de novo.');
+      });
   }
 
   var atualAnterior = null;
@@ -330,6 +425,99 @@
     var s = String(agora.getSeconds()).padStart(2, '0');
     $('hora').innerHTML = h + ':' + m + '<small>' + s + '</small>';
     if (agora.getSeconds() === 0) atualizaAgora();
+    tiqueCronometro();
+  }
+
+  // ---------- cronômetro ----------
+  // Um por aparelho, guardado no navegador para sobreviver a um recarregamento; não vai para o servidor.
+  var CRON_CHAVE = 'rotina.cronometro';
+  var cron = null; // { id, data, inicio, fim, minutos, avisou }
+  var somCtx = null;
+
+  function carregaCronometro() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CRON_CHAVE) || 'null');
+      if (c && c.id && c.data === hojeChave() && Date.now() - c.fim < 6 * 3600000) cron = c;
+      else localStorage.removeItem(CRON_CHAVE);
+    } catch (e) { cron = null; }
+  }
+  function guardaCronometro() {
+    try { if (cron) localStorage.setItem(CRON_CHAVE, JSON.stringify(cron)); else localStorage.removeItem(CRON_CHAVE); } catch (e) {}
+  }
+
+  function preparaSom() {
+    try {
+      somCtx = somCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (somCtx.state === 'suspended') somCtx.resume();
+    } catch (e) { somCtx = null; }
+  }
+  function tocaSino() {
+    if (!somCtx) return;
+    var t0 = somCtx.currentTime;
+    [0, 1.4].forEach(function (rep) {
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+        var t = t0 + rep + i * 0.16, o = somCtx.createOscillator(), g = somCtx.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+        o.connect(g); g.connect(somCtx.destination);
+        o.start(t); o.stop(t + 0.65);
+      });
+    });
+  }
+
+  function toqueCronometro(t) {
+    ultimaInteracao = Date.now();
+    preparaSom(); // o toque libera o áudio no iPad; o sino toca sozinho no fim
+    if (cron && cron.id === t.id) { paraCronometro(); return; }
+    var agora = Date.now();
+    cron = { id: t.id, data: dataVista, inicio: agora, fim: agora + t.duracao * 60000, minutos: t.duracao, avisou: false };
+    guardaCronometro();
+    tiqueCronometro();
+  }
+  function paraCronometro() {
+    var antigo = cron;
+    cron = null;
+    guardaCronometro();
+    if (antigo && linhas[antigo.id]) desenhaCronometro(linhas[antigo.id], null);
+    $('cron-topo').hidden = true;
+  }
+
+  function mmss(ms) {
+    var s = Math.max(0, Math.round(ms / 1000));
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function desenhaCronometro(l, c) {
+    if (!l.cronBtn) return;
+    l.linha.classList.toggle('cronometrando', !!c);
+    l.cronBarra.hidden = !c;
+    l.cronBtn.classList.toggle('rodando', !!c && !c.acabou);
+    l.cronBtn.classList.toggle('acabou', !!c && c.acabou);
+    if (!c) { l.cronBtn.textContent = '▶ ' + l.tarefa.duracao + ' min'; return; }
+    l.cronBarra.firstElementChild.style.width = Math.min(100, ((Date.now() - c.inicio) / (c.fim - c.inicio)) * 100) + '%';
+    l.cronBtn.textContent = c.acabou ? 'Tempo esgotado · toque para fechar' : '■ ' + mmss(c.fim - Date.now());
+  }
+
+  function tiqueCronometro() {
+    var topo = $('cron-topo');
+    if (!cron) { topo.hidden = true; return; }
+    var acabou = Date.now() >= cron.fim;
+    cron.acabou = acabou;
+    if (acabou && !cron.avisou) { cron.avisou = true; guardaCronometro(); tocaSino(); }
+    var l = linhas[cron.id];
+    if (l && cron.data === dataVista) desenhaCronometro(l, cron);
+    if (acabou) {
+      topo.textContent = '';
+      topo.append('Tempo esgotado', el('small', null, l ? l.tarefa.titulo : ''));
+    } else {
+      topo.textContent = '';
+      topo.append('⏱ ' + mmss(cron.fim - Date.now()), el('small', null, l ? l.tarefa.titulo : ''));
+    }
+    topo.hidden = false;
+    // Passou muito do fim sem ninguém fechar: limpa sozinho.
+    if (Date.now() - cron.fim > 30 * 60000) paraCronometro();
   }
 
   // ---------- servidor ----------
@@ -357,7 +545,9 @@
     if (!dia) return;
     semana[dia.data] = dia;
     if (dia.data !== dataVista) { desenhaSemana(); return; }
-    estado = { tarefas: dia.tarefas || {}, revisao: dia.revisao };
+    estado = { tarefas: dia.tarefas || {}, revisao: dia.revisao, agenda: dia.agenda || null };
+    var novaId = (agendaDoDia(dataVista).agenda || {}).id || null;
+    if (novaId !== agendaVista) { desenhaLista(); atualizaCabecalho(); }
     atualizaTudo();
   }
 
@@ -426,7 +616,7 @@
   function vaiPara(k) {
     Object.keys(editando).forEach(salvaComentarioAgora);
     dataVista = k;
-    estado = semana[k] ? { tarefas: semana[k].tarefas || {}, revisao: semana[k].revisao } : { tarefas: {}, revisao: -1 };
+    estado = semana[k] ? { tarefas: semana[k].tarefas || {}, revisao: semana[k].revisao, agenda: semana[k].agenda || null } : { tarefas: {}, revisao: -1, agenda: null };
     atualizaCabecalho();
     desenhaLista();
     atualizaTudo();
@@ -466,6 +656,12 @@
     $('dia-anterior').onclick = function () { vaiPara(somaDias(dataVista, -1)); };
     $('dia-seguinte').onclick = function () { vaiPara(somaDias(dataVista, 1)); };
     $('dia-hoje').onclick = function () { vaiPara(hojeChave()); };
+    $('agenda-btn').onclick = function (ev) { ev.stopPropagation(); ultimaInteracao = Date.now(); abreMenuAgenda(); };
+    document.addEventListener('pointerdown', function (ev) {
+      if (!$('agenda-menu').hidden && !$('agenda-menu').contains(ev.target) && ev.target !== $('agenda-btn')) fechaMenuAgenda();
+    });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') fechaMenuAgenda(); });
+    carregaCronometro();
     ['pointerdown', 'keydown', 'scroll'].forEach(function (ev) {
       window.addEventListener(ev, function () { ultimaInteracao = Date.now(); }, { passive: true });
     });

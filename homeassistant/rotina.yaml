@@ -1,0 +1,137 @@
+# Rotina da Ana Liz no Home Assistant (pacote). Copie para /config/packages/rotina.yaml e, se ainda não
+# tiver, ative pacotes em configuration.yaml:
+#   homeassistant:
+#     packages: !include_dir_named packages
+# Depois: Ferramentas do desenvolvedor → YAML → Recarregar tudo (ou reinicie o HA).
+#
+# Os sensores leem casa.blizzard.net/rotina/api/resumo a cada minuto. As automações são exemplos prontos
+# para esta casa (Echo Show na cozinha, iPhones do Hélio e da Érika); ajuste ou desligue as que não quiser.
+
+rest:
+  - resource: http://casa.blizzard.net/rotina/api/resumo
+    scan_interval: 60
+    timeout: 10
+    sensor:
+      - name: "Rotina Ana Liz · feitas"
+        unique_id: rotina_analiz_feitas
+        value_template: "{{ value_json.feitas }}"
+        unit_of_measurement: "tarefas"
+        icon: mdi:check-circle-outline
+        json_attributes:
+          - total
+          - pendentes
+          - atrasadas
+          - atrasadasLista
+          - comentarios
+          - completo
+          - agenda
+          - agendaNome
+          - agendaOrigem
+          - data
+          - atualizadoEm
+      - name: "Rotina Ana Liz · progresso"
+        unique_id: rotina_analiz_progresso
+        value_template: "{{ value_json.pct }}"
+        unit_of_measurement: "%"
+        icon: mdi:progress-check
+      - name: "Rotina Ana Liz · atividade de agora"
+        unique_id: rotina_analiz_atual
+        value_template: "{{ value_json.atual.titulo if value_json.atual else 'Nada agora' }}"
+        icon: mdi:clock-outline
+        json_attributes_path: "$.atual"
+        json_attributes:
+          - id
+          - hora
+          - bloco
+          - duracao
+          - feito
+      - name: "Rotina Ana Liz · próxima atividade"
+        unique_id: rotina_analiz_proxima
+        value_template: "{{ value_json.proxima.titulo if value_json.proxima else 'Fim do dia' }}"
+        icon: mdi:clock-fast
+        json_attributes_path: "$.proxima"
+        json_attributes:
+          - id
+          - hora
+          - bloco
+          - duracao
+      - name: "Rotina Ana Liz · atrasadas"
+        unique_id: rotina_analiz_atrasadas
+        value_template: "{{ value_json.atrasadas }}"
+        unit_of_measurement: "tarefas"
+        icon: mdi:alert-circle-outline
+    binary_sensor:
+      - name: "Rotina Ana Liz · dia completo"
+        unique_id: rotina_analiz_completo
+        value_template: "{{ value_json.completo }}"
+        icon: mdi:party-popper
+
+automation:
+  # 1. Quando a atividade de agora muda (e ainda não foi feita), anuncia no Echo Show.
+  - id: rotina_analiz_anuncia_atividade
+    alias: "Rotina Ana Liz · anunciar atividade"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: sensor.rotina_ana_liz_atividade_de_agora
+        not_from: ["unknown", "unavailable"]
+        not_to: ["unknown", "unavailable", "Nada agora"]
+    condition:
+      - condition: template
+        value_template: "{{ not is_state_attr('sensor.rotina_ana_liz_atividade_de_agora', 'feito', true) }}"
+      - condition: time
+        after: "08:55:00"
+        before: "22:05:00"
+    action:
+      - service: notify.alexa_media_echoshow
+        data:
+          message: >
+            Ana Liz, {{ states('sensor.rotina_ana_liz_atividade_de_agora') | lower }}.
+            {% set d = state_attr('sensor.rotina_ana_liz_atividade_de_agora', 'duracao') %}
+            {% if d %} Você tem {{ d }} minutos.{% endif %}
+          data:
+            type: announce
+
+  # 2. Às 21:30, se sobrou coisa, avisa os pais no celular com a lista.
+  - id: rotina_analiz_pendencias_noite
+    alias: "Rotina Ana Liz · pendências às 21:30"
+    mode: single
+    trigger:
+      - platform: time
+        at: "21:30:00"
+    condition:
+      - condition: numeric_state
+        entity_id: sensor.rotina_ana_liz_atrasadas
+        above: 0
+    action:
+      - service: notify.mobile_app_iphone_mrbrown
+        data: &pendencias
+          title: "Rotina da Ana Liz"
+          message: >
+            {{ states('sensor.rotina_ana_liz_atrasadas') }} atividade(s) ainda não marcadas:
+            {{ state_attr('sensor.rotina_ana_liz_feitas', 'atrasadasLista') | join(', ') }}.
+          data:
+            url: http://casa.blizzard.net/rotina/
+      - service: notify.mobile_app_iphone_erika
+        data: *pendencias
+
+  # 3. Dia 100%: parabéns no Echo Show e aviso aos pais.
+  - id: rotina_analiz_dia_completo
+    alias: "Rotina Ana Liz · dia completo"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.rotina_ana_liz_dia_completo
+        to: "on"
+    action:
+      - service: notify.alexa_media_echoshow
+        data:
+          message: "Parabéns, Ana Liz! Você completou toda a rotina de hoje."
+          data:
+            type: announce
+      - service: notify.mobile_app_iphone_mrbrown
+        data: &completo
+          title: "Rotina da Ana Liz"
+          message: "Dia completo: {{ state_attr('sensor.rotina_ana_liz_feitas', 'total') }} de {{ state_attr('sensor.rotina_ana_liz_feitas', 'total') }} atividades feitas."
+      - service: notify.mobile_app_iphone_erika
+        data: *completo
