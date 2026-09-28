@@ -10,7 +10,7 @@ separa as aplicações pelo nome.
 | Endereço | Aplicação | Onde roda |
 | --- | --- | --- |
 | `http://view.blizzard.net/` | Blizzard, a central de monitoramento | repositório `blizzard`, nginx em `127.0.0.1:8080` |
-| `http://rotina.blizzard.net/` | Rotina da Ana Liz | página estática em `apps/rotina/` |
+| `http://casa.blizzard.net/` | Rotina da Ana Liz | página estática em `apps/rotina/` |
 | `http://10.255.200.100/` ou qualquer outro nome | Página inicial com a lista das aplicações | `inicio/index.html` |
 
 ## Instalação
@@ -42,7 +42,7 @@ todas as aplicações futuras.
 Antes do DNS, dá para testar no próprio Pi:
 
 ```bash
-curl -sI -H 'Host: rotina.blizzard.net' http://127.0.0.1/ | head -1
+curl -sI -H 'Host: casa.blizzard.net' http://127.0.0.1/ | head -1
 ```
 
 ## Publicar uma aplicação nova

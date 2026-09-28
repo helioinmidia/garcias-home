@@ -13,7 +13,7 @@ http://view.blizzard.net {
 }
 
 # Rotina da Ana Liz: página estática, sem servidor próprio.
-http://rotina.blizzard.net {
+http://casa.blizzard.net {
 	root * /srv/apps/rotina
 	file_server
 	header Cache-Control "no-cache"

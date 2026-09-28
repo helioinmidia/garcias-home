@@ -42,10 +42,10 @@ cat <<MSG
 
 Pronto. Falta:
   1. No DNS da rede (gateway 10.255.200.254), apontar para 10.255.200.100:
-       view.blizzard.net, rotina.blizzard.net
+       view.blizzard.net, casa.blizzard.net
   2. Reiniciar o Pi (sudo reboot) para o quiosque da TV abrir a Blizzard na porta nova.
 
 Teste daqui mesmo, sem depender do DNS:
-  curl -sI -H 'Host: rotina.blizzard.net' http://127.0.0.1/ | head -1
+  curl -sI -H 'Host: casa.blizzard.net' http://127.0.0.1/ | head -1
   curl -sI -H 'Host: view.blizzard.net'   http://127.0.0.1/ | head -1
 MSG
