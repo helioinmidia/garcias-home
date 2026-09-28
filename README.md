@@ -55,6 +55,16 @@ O `install.sh`:
 
 O reboot serve para o quiosque da TV reabrir a Blizzard já na porta nova.
 
+### Atualizar
+
+```bash
+cd ~/garcias-home && git pull && ./install.sh
+```
+
+Pode rodar quantas vezes quiser. Ele sobe o que faltar (a API da rotina, por exemplo) e reinicia o Caddy.
+O reinício é necessário porque o `Caddyfile` é montado como arquivo e o `git pull` o substitui. Não
+precisa reiniciar o Pi de novo.
+
 ## DNS
 
 Cada nome precisa apontar para `10.255.200.100` no DNS da rede, que é o do gateway `10.255.200.254`.

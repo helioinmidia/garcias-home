@@ -42,6 +42,8 @@ if ! grep -q '^CASA_UID=' .env 2>/dev/null; then
   printf 'CASA_UID=%s\nCASA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
 fi
 sudo docker compose up -d --remove-orphans
+# O Caddyfile é montado como arquivo: depois de um git pull o container ainda vê o antigo até reiniciar.
+sudo docker compose restart caddy
 
 cat <<MSG
 
