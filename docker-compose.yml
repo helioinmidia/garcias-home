@@ -1,0 +1,21 @@
+# garcias-home: servidor da casa (Raspberry Pi 4), proxy de entrada na porta 80.
+# Cada aplicação roda no próprio repositório/compose, escutando só em 127.0.0.1; o Caddy as publica por nome.
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: garcias-home-caddy
+    restart: unless-stopped
+    # Rede do host: alcança as aplicações em 127.0.0.1 sem publicar as portas delas na rede.
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./inicio:/srv/inicio:ro
+      - ./apps:/srv/apps:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - TZ=America/Sao_Paulo
+
+volumes:
+  caddy-data:
+  caddy-config:

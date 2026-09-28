@@ -1,0 +1,27 @@
+# Proxy de entrada do servidor da casa. Atende a porta 80 e separa as aplicações pelo nome.
+# Cada nome precisa apontar para o IP do Pi (10.255.200.100) no DNS da rede: ver README.md.
+# Depois de editar: sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+{
+	# Só HTTP, dentro da rede de casa: sem certificados automáticos.
+	auto_https off
+}
+
+# Blizzard, a central de monitoramento (repositório blizzard). O nginx dela escuta em 127.0.0.1:8080
+# (BLIZZARD_WEB_LISTEN no .env da Blizzard) e cuida de /go2rtc, /api e /ha. WebSocket e SSE passam direto.
+http://view.blizzard.net {
+	reverse_proxy 127.0.0.1:8080
+}
+
+# Rotina da Ana Liz: página estática, sem servidor próprio.
+http://rotina.blizzard.net {
+	root * /srv/apps/rotina
+	file_server
+	header Cache-Control "no-cache"
+}
+
+# Qualquer outro nome, ou o IP do Pi: página inicial com a lista das aplicações.
+:80 {
+	root * /srv/inicio
+	file_server
+	header Cache-Control "no-cache"
+}
