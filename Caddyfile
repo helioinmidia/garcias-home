@@ -15,9 +15,15 @@ http://view.blizzard.net {
 # Portal da casa: página inicial e as aplicações em subpastas de casa/ (casa.blizzard.net/rotina,
 # /manutencao…). O IP do Pi, ou qualquer outro nome, abre o mesmo portal.
 http://casa.blizzard.net, :80 {
-	root * /srv/casa
-	file_server {
-		hide README.md
+	# API da rotina (api/rotina.py): marcações de feito e comentários, gravados no Pi.
+	handle_path /rotina/api/* {
+		reverse_proxy 127.0.0.1:8081
 	}
-	header Cache-Control "no-cache"
+	handle {
+		root * /srv/casa
+		file_server {
+			hide README.md
+		}
+		header Cache-Control "no-cache"
+	}
 }

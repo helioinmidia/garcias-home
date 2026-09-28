@@ -15,6 +15,24 @@ services:
     environment:
       - TZ=America/Sao_Paulo
 
+  # API da rotina: guarda por dia o que foi feito e os comentários (dados/rotina/AAAA-MM-DD.json).
+  rotina-api:
+    image: python:3.12-alpine
+    container_name: garcias-home-rotina
+    restart: unless-stopped
+    network_mode: host
+    # Mesmo usuário do dono do repositório, para os arquivos de dados continuarem editáveis fora do container.
+    user: "${CASA_UID:-1000}:${CASA_GID:-1000}"
+    command: ["python", "/app/rotina.py"]
+    volumes:
+      - ./api:/app:ro
+      - ./dados:/dados
+    environment:
+      - DADOS_DIR=/dados/rotina
+      - PORT=8081
+      - BIND=127.0.0.1
+      - TZ=America/Sao_Paulo
+
 volumes:
   caddy-data:
   caddy-config:

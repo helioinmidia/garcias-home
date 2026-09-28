@@ -1,2 +1,7 @@
 .DS_Store
 *.log
+
+# Dados gravados pelas aplicações no Pi (marcações e comentários da rotina) e variáveis locais.
+dados/
+.env
+__pycache__/

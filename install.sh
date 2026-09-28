@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sobe o proxy de entrada do servidor da casa na porta 80.
+# Sobe o proxy de entrada do servidor da casa na porta 80 e a API da rotina.
 # Antes, tira a Blizzard da porta 80 (ela passa a escutar em 127.0.0.1:8080, atrás do proxy).
 #
 #   cd ~/garcias-home && ./install.sh
@@ -34,9 +34,14 @@ else
   echo "==> Blizzard não encontrada em $BLIZZARD_DIR; seguindo só com o proxy."
 fi
 
-echo "==> Proxy de entrada (Caddy) na porta 80"
+echo "==> Proxy de entrada (Caddy) e API da rotina"
 cd "$SERVIDOR_DIR"
-sudo docker compose up -d
+# Dono dos arquivos gravados pelas APIs (pasta dados/, fora do git).
+mkdir -p dados/rotina
+if ! grep -q '^CASA_UID=' .env 2>/dev/null; then
+  printf 'CASA_UID=%s\nCASA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
+fi
+sudo docker compose up -d --remove-orphans
 
 cat <<MSG
 

@@ -20,13 +20,17 @@ O IP do Pi (`http://10.255.200.100/`), ou qualquer outro nome, abre o mesmo port
 
 ```
 Caddyfile            nomes e rotas do proxy de entrada
-docker-compose.yml   o Caddy (porta 80)
-install.sh           tira a Blizzard da porta 80 e sobe o Caddy
+docker-compose.yml   o Caddy (porta 80) e a API da rotina (127.0.0.1:8081)
+install.sh           tira a Blizzard da porta 80 e sobe o Caddy e a API da rotina
 casa/                o portal, servido em casa.blizzard.net
   index.html         página inicial com a lista das aplicações
   casa.css           estilo comum às páginas do portal
-  rotina/            Rotina da Ana Liz
+  rotina/            Rotina da Ana Liz (aplicação: index.html, app.js, rotina.css)
+    rotina.json      horários e atividades de cada dia da semana
+    cartaz.html      o cartaz original, para imprimir
   manutencao/        Manutenção da casa
+api/rotina.py        API da rotina: o que foi feito e os comentários, por dia
+dados/               gravado pelas APIs no Pi (fora do git)
 ```
 
 Uma aplicação estática é uma subpasta de `casa/`: basta criar `casa/<nome>/index.html` e pôr o link no
@@ -74,19 +78,38 @@ O link permanente da rotina é **`http://casa.blizzard.net/rotina/`**.
 3. Para a tela não apagar, vá em *Ajustes → Tela e Brilho → Bloqueio Automático → Nunca*, com o iPad no
    carregador. Para travar o iPad só na rotina, use o *Acesso Guiado*, em *Ajustes → Acessibilidade*.
 
-A página confere o servidor a cada 5 minutos. Quando `casa/rotina/index.html` muda (depois de um
+A página confere o servidor a cada 5 minutos. Quando algum arquivo dela muda (depois de um
 `git pull` no Pi), ela se recarrega sozinha e ninguém precisa mexer no iPad.
+
+## Rotina: como funciona
+
+- **Cabeçalho:** dia da semana, data, relógio, a atividade de agora e a próxima, a contagem de
+  atividades feitas e a barra de progresso.
+- **Cada atividade** tem um botão de feito (toque de novo para desmarcar) e um botão de comentário.
+  O comentário é salvo sozinho enquanto a pessoa escreve.
+- **Tudo fica gravado no Pi**, nunca no navegador. Um arquivo por dia em `dados/rotina/AAAA-MM-DD.json`,
+  gravado pela API `api/rotina.py`, publicada em `casa.blizzard.net/rotina/api/`. iPad, celulares e
+  laptop veem o mesmo estado; uma marcação feita num aparelho aparece nos outros em até 10 segundos.
+- **Outros dias:** as setas ‹ › mostram os dias anteriores (histórico) e os próximos. Sem ninguém
+  mexendo, a tela volta sozinha para hoje depois de 3 minutos, e troca de dia à meia-noite.
+- **Mudar horários ou atividades:** edite `casa/rotina/rotina.json`.
+  - `diasDaSemana` vai de 0 (domingo) a 6 (sábado).
+  - `horaPorDia` e `descricaoPorDia` trocam a hora ou o texto em dias específicos.
+  - `quem` são as pessoas que devem estar e `podem` as que podem estar.
+  - Mantenha o `id` de uma atividade ao editá-la: é por ele que as marcações antigas são encontradas.
+
+Para conferir a API no Pi: `curl -s -H 'Host: casa.blizzard.net' http://127.0.0.1/rotina/api/saude`.
 
 ## Publicar uma aplicação com servidor próprio
 
 Cada aplicação vive no próprio repositório, com o próprio `docker compose`, e escuta **só em
-`127.0.0.1`**, numa porta livre (8081, 8082…). Assim ela não aparece na rede sem passar pelo proxy.
+`127.0.0.1`**, numa porta livre (8082, 8083…). Assim ela não aparece na rede sem passar pelo proxy.
 
-1. Suba a aplicação, por exemplo em `127.0.0.1:8081`.
+1. Suba a aplicação, por exemplo em `127.0.0.1:8082`.
 2. Acrescente um bloco ao `Caddyfile`:
    ```caddy
    http://manutencao.blizzard.net {
-   	reverse_proxy 127.0.0.1:8081
+   	reverse_proxy 127.0.0.1:8082
    }
    ```
    Para ela ficar dentro do portal (`casa.blizzard.net/<nome>/`), use `handle_path /<nome>/*` com o
@@ -103,6 +126,7 @@ Cada aplicação vive no próprio repositório, com o próprio `docker compose`,
 | --- | --- | --- |
 | 80 | Caddy (este repositório) | sim |
 | 8080 | nginx da Blizzard | não (127.0.0.1) |
+| 8081 | API da rotina (este repositório) | não (127.0.0.1) |
 | 8787 | API de configuração da Blizzard | não (127.0.0.1) |
 | 8099 | ponte do Home Assistant da Blizzard | não (127.0.0.1) |
 | 1984 | go2rtc, API e painel | sim |
