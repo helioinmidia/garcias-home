@@ -11,6 +11,7 @@
   var SALVA_COMENTARIO_MS = 900;
 
   var DIAS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  var DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
   var $ = function (id) { return document.getElementById(id); };
@@ -25,6 +26,7 @@
   var dataVista = hojeChave(); // AAAA-MM-DD do dia na tela
   var tarefas = []; // tarefas do dia na tela, já resolvidas (hora, descrição do dia)
   var estado = { tarefas: {}, revisao: -1 }; // vindo do servidor
+  var semana = {}; // AAAA-MM-DD -> dia vindo do servidor (para a faixa da semana)
   var linhas = {}; // id -> elementos da linha
   var editando = {}; // id -> timer do comentário em edição
   var ultimaInteracao = Date.now();
@@ -38,6 +40,7 @@
   function hojeChave() { return chave(new Date()); }
   function deChave(k) { var p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
   function somaDias(k, n) { var d = deChave(k); d.setDate(d.getDate() + n); return chave(d); }
+  function segundaDe(k) { var d = deChave(k); return somaDias(k, -((d.getDay() + 6) % 7)); }
   function minutos(hhmm) { var p = hhmm.split(':'); return +p[0] * 60 + +p[1]; }
   function horaCurta(iso) {
     if (!iso) return '';
@@ -238,10 +241,47 @@
       var f = doBloco.filter(function (t) { return (estado.tarefas[t.id] || {}).feito; }).length;
       c.textContent = f + ' de ' + doBloco.length;
     });
+    desenhaSemana();
     atualizaAgora();
   }
 
   function dataLonga(k) { var d = deChave(k); return d.getDate() + ' de ' + MESES[d.getMonth()]; }
+
+  // Progresso de um dia: quantas atividades daquele dia estão feitas.
+  function progressoDe(k) {
+    var lista = k === dataVista ? tarefas : tarefasDoDia(k);
+    var dia = k === dataVista ? estado : semana[k];
+    var feitas = dia ? lista.filter(function (t) { return (dia.tarefas[t.id] || {}).feito; }).length : 0;
+    return { feitas: feitas, total: lista.length };
+  }
+
+  // Faixa da semana do dia na tela: segunda a domingo, cada dia com o próprio progresso.
+  function desenhaSemana() {
+    var faixa = $('semana');
+    faixa.textContent = '';
+    var hoje = hojeChave(), inicio = segundaDe(dataVista);
+    for (var i = 0; i < 7; i++) {
+      (function (k) {
+        var d = deChave(k), p = progressoDe(k), pct = p.total ? Math.round((p.feitas / p.total) * 100) : 0;
+        var b = el('button', 'dia-btn');
+        b.type = 'button';
+        if (k === hoje) b.classList.add('hoje');
+        if (k === dataVista) b.classList.add('visto');
+        if (k > hoje) b.classList.add('futuro');
+        if (!p.total) b.classList.add('vazio');
+        if (p.total && p.feitas === p.total) b.classList.add('completo');
+        var mini = el('span', 'mini');
+        mini.append(el('i'));
+        mini.firstElementChild.style.width = pct + '%';
+        b.append(el('span', 'abrev', DIAS_CURTOS[d.getDay()]), el('span', 'num', String(d.getDate())), mini,
+          el('span', 'cont', p.total ? p.feitas + ' de ' + p.total : '—'));
+        b.setAttribute('aria-label', DIAS[d.getDay()] + ', ' + dataLonga(k) + ': ' + p.feitas + ' de ' + p.total + ' feitas');
+        b.setAttribute('aria-current', k === dataVista ? 'date' : 'false');
+        b.onclick = function () { if (k !== dataVista) vaiPara(k); };
+        faixa.append(b);
+      })(somaDias(inicio, i));
+    }
+  }
 
   function atualizaCabecalho() {
     var d = deChave(dataVista);
@@ -314,19 +354,26 @@
   }
 
   function aplica(dia) {
-    if (!dia || dia.data !== dataVista) return;
+    if (!dia) return;
+    semana[dia.data] = dia;
+    if (dia.data !== dataVista) { desenhaSemana(); return; }
     estado = { tarefas: dia.tarefas || {}, revisao: dia.revisao };
     atualizaTudo();
   }
 
+  // Uma leitura só traz a semana inteira do dia na tela: o dia em si e o progresso dos outros seis.
   var sincronizando = false;
   function sincroniza() {
     if (sincronizando || document.hidden) return;
     sincronizando = true;
-    var alvo = dataVista, gen = geracao;
-    pede('GET', '/dia/' + alvo)
-      .then(function (dia) {
-        if (alvo === dataVista && gen === geracao && dia.revisao !== estado.revisao) aplica(dia);
+    var alvo = dataVista, gen = geracao, inicio = segundaDe(alvo);
+    pede('GET', '/dias?de=' + inicio + '&ate=' + somaDias(inicio, 6))
+      .then(function (r) {
+        var dias = r.dias || {};
+        Object.keys(dias).forEach(function (k) { if (k !== alvo) semana[k] = dias[k]; });
+        var dia = dias[alvo];
+        if (alvo === dataVista && gen === geracao && dia && dia.revisao !== estado.revisao) aplica(dia);
+        else desenhaSemana();
         toast('');
       })
       .catch(function () { toast('Sem conexão com o servidor da casa. Tentando de novo…'); })
@@ -379,7 +426,7 @@
   function vaiPara(k) {
     Object.keys(editando).forEach(salvaComentarioAgora);
     dataVista = k;
-    estado = { tarefas: {}, revisao: -1 };
+    estado = semana[k] ? { tarefas: semana[k].tarefas || {}, revisao: semana[k].revisao } : { tarefas: {}, revisao: -1 };
     atualizaCabecalho();
     desenhaLista();
     atualizaTudo();

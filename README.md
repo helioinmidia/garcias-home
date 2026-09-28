@@ -100,8 +100,11 @@ A página confere o servidor a cada 5 minutos. Quando algum arquivo dela muda (d
 - **Tudo fica gravado no Pi**, nunca no navegador. Um arquivo por dia em `dados/rotina/AAAA-MM-DD.json`,
   gravado pela API `api/rotina.py`, publicada em `casa.blizzard.net/rotina/api/`. iPad, celulares e
   laptop veem o mesmo estado; uma marcação feita num aparelho aparece nos outros em até 10 segundos.
-- **Outros dias:** as setas ‹ › mostram os dias anteriores (histórico) e os próximos. Sem ninguém
-  mexendo, a tela volta sozinha para hoje depois de 3 minutos, e troca de dia à meia-noite.
+- **Faixa da semana:** logo abaixo do cabeçalho, um botão por dia (segunda a domingo) com a barra de
+  progresso daquele dia; o dia completo fica verde. Toque num dia para vê-lo. É o resumo para a
+  revisão de domingo.
+- **Outros dias:** a faixa e as setas ‹ › mostram os dias anteriores (histórico) e os próximos. Sem
+  ninguém mexendo, a tela volta sozinha para hoje depois de 3 minutos, e troca de dia à meia-noite.
 - **Mudar horários ou atividades:** edite `casa/rotina/rotina.json`.
   - `diasDaSemana` vai de 0 (domingo) a 6 (sábado).
   - `horaPorDia` e `descricaoPorDia` trocam a hora ou o texto em dias específicos.
@@ -109,6 +112,7 @@ A página confere o servidor a cada 5 minutos. Quando algum arquivo dela muda (d
   - Mantenha o `id` de uma atividade ao editá-la: é por ele que as marcações antigas são encontradas.
 
 Para conferir a API no Pi: `curl -s -H 'Host: casa.blizzard.net' http://127.0.0.1/rotina/api/saude`.
+As rotas estão no cabeçalho de `api/rotina.py` (`/dia/<data>`, `/dias?de=&ate=`, `PUT /dia/<data>/tarefa/<id>`).
 
 ## Publicar uma aplicação com servidor próprio
 

@@ -7,6 +7,8 @@ atividades) fica em casa/rotina/rotina.json, servida como arquivo estático; est
 
   GET /dia/AAAA-MM-DD                  -> {"data", "tarefas": {id: {feito, feitoEm, comentario, comentadoEm}},
                                             "revisao", "atualizadoEm"}  (revisao sobe a cada gravação)
+  GET /dias?de=AAAA-MM-DD&ate=AAAA-MM-DD -> {"dias": {data: dia}} para cada dia do intervalo (até 31 dias);
+                                            é o que a faixa da semana usa, numa só leitura
   PUT /dia/AAAA-MM-DD/tarefa/<id>      <- {"feito": bool} e/ou {"comentario": "texto"}; devolve o dia inteiro
   GET /saude                           -> {"ok": true}
 
@@ -21,6 +23,7 @@ import sys
 import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs
 
 DADOS_DIR = os.environ.get("DADOS_DIR") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dados", "rotina"
@@ -29,6 +32,7 @@ PORT = int(os.environ.get("PORT", "8081"))
 BIND = os.environ.get("BIND", "127.0.0.1")
 MAX_BODY = 16 * 1024
 MAX_COMENTARIO = 2000
+MAX_DIAS = 31
 
 ROTA_DIA = re.compile(r"^/dia/(\d{4}-\d{2}-\d{2})$")
 ROTA_TAREFA = re.compile(r"^/dia/(\d{4}-\d{2}-\d{2})/tarefa/([a-z0-9][a-z0-9-]{0,63})$")
@@ -46,11 +50,23 @@ def agora():
 
 
 def valida_data(texto):
+    if not texto or not re.match(r"^\d{4}-\d{2}-\d{2}$", texto):
+        raise ErroPedido(f"data inválida: {texto!r}")
     try:
         datetime.date.fromisoformat(texto)
     except ValueError:
         raise ErroPedido(f"data inválida: {texto}")
     return texto
+
+
+def datas_entre(de, ate):
+    """Lista de AAAA-MM-DD de `de` até `ate`, inclusive; no máximo MAX_DIAS."""
+    d0, d1 = datetime.date.fromisoformat(de), datetime.date.fromisoformat(ate)
+    if d1 < d0:
+        raise ErroPedido('"ate" vem antes de "de"')
+    if (d1 - d0).days >= MAX_DIAS:
+        raise ErroPedido(f"intervalo de no máximo {MAX_DIAS} dias")
+    return [(d0 + datetime.timedelta(days=i)).isoformat() for i in range((d1 - d0).days + 1)]
 
 
 def caminho(data):
@@ -63,7 +79,11 @@ def le_dia(data):
             dia = json.load(fh)
     except FileNotFoundError:
         return {"data": data, "tarefas": {}, "revisao": 0, "atualizadoEm": None}
-    if not isinstance(dia.get("tarefas"), dict):
+    except (OSError, ValueError) as e:
+        # Arquivo ilegível ou corrompido: não derruba a tela; a próxima gravação o substitui.
+        print(f"aviso: {caminho(data)} ilegível ({e}); tratando como vazio", file=sys.stderr)
+        return {"data": data, "tarefas": {}, "revisao": 0, "atualizadoEm": None}
+    if not isinstance(dia, dict) or not isinstance(dia.get("tarefas"), dict):
         dia["tarefas"] = {}
     if not isinstance(dia.get("revisao"), int):
         dia["revisao"] = 0
@@ -135,14 +155,22 @@ class Handler(BaseHTTPRequestHandler):
         self._envia(codigo, {"erro": mensagem})
 
     def do_GET(self):
-        rota = self.path.split("?", 1)[0]
+        rota, _, consulta = self.path.partition("?")
         if rota == "/saude":
             return self._envia(200, {"ok": True})
-        m = ROTA_DIA.match(rota)
-        if not m:
-            return self._erro(404, "rota inexistente")
         try:
-            return self._envia(200, le_dia(valida_data(m.group(1))))
+            if rota == "/dias":
+                q = parse_qs(consulta)
+                de = valida_data((q.get("de") or [""])[0])
+                ate = valida_data((q.get("ate") or [""])[0])
+                with trava:
+                    dias = {data: le_dia(data) for data in datas_entre(de, ate)}
+                return self._envia(200, {"dias": dias})
+            m = ROTA_DIA.match(rota)
+            if not m:
+                return self._erro(404, "rota inexistente")
+            with trava:
+                return self._envia(200, le_dia(valida_data(m.group(1))))
         except ErroPedido as e:
             return self._erro(400, str(e))
 
