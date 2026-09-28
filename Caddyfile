@@ -12,16 +12,12 @@ http://view.blizzard.net {
 	reverse_proxy 127.0.0.1:8080
 }
 
-# Rotina da Ana Liz: página estática, sem servidor próprio.
-http://casa.blizzard.net {
-	root * /srv/apps/rotina
-	file_server
-	header Cache-Control "no-cache"
-}
-
-# Qualquer outro nome, ou o IP do Pi: página inicial com a lista das aplicações.
-:80 {
-	root * /srv/inicio
-	file_server
+# Portal da casa: página inicial e as aplicações em subpastas de casa/ (casa.blizzard.net/rotina,
+# /manutencao…). O IP do Pi, ou qualquer outro nome, abre o mesmo portal.
+http://casa.blizzard.net, :80 {
+	root * /srv/casa
+	file_server {
+		hide README.md
+	}
 	header Cache-Control "no-cache"
 }

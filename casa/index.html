@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Casa">
+  <link rel="apple-touch-icon" href="/icon.png">
+  <link rel="icon" href="/icon.png">
+  <title>Casa</title>
+  <link rel="stylesheet" href="/casa.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow" id="hoje">Casa</p>
+      <h1>Casa</h1>
+      <p class="sub">Aplicações da casa, na rede local.</p>
+    </header>
+
+    <!-- Ao publicar uma aplicação nova, acrescente um item aqui (ver README.md). -->
+    <ul class="apps">
+      <li>
+        <a class="app" href="/rotina/">
+          <span class="dot" style="--dot: #b5532b"></span>
+          <span class="body">
+            <span class="name">Rotina da Ana Liz</span>
+            <span class="desc">A semana dela, de segunda a domingo</span>
+          </span>
+          <span class="path">/rotina</span>
+        </a>
+      </li>
+      <li>
+        <a class="app" href="/manutencao/">
+          <span class="dot" style="--dot: #2e7a3d"></span>
+          <span class="body">
+            <span class="name">Manutenção da casa</span>
+            <span class="desc">Cronograma de manutenção doméstica</span>
+          </span>
+          <span class="path">/manutencao</span>
+        </a>
+      </li>
+      <li>
+        <a class="app" href="http://view.blizzard.net/">
+          <span class="dot" style="--dot: #16305e"></span>
+          <span class="body">
+            <span class="name">Blizzard</span>
+            <span class="desc">Câmeras e Home Assistant</span>
+          </span>
+          <span class="path">view.blizzard.net</span>
+        </a>
+      </li>
+    </ul>
+  </main>
+  <script>
+    var hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    document.getElementById('hoje').textContent = hoje
+  </script>
+</body>
+</html>

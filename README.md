@@ -10,8 +10,27 @@ separa as aplicações pelo nome.
 | Endereço | Aplicação | Onde roda |
 | --- | --- | --- |
 | `http://view.blizzard.net/` | Blizzard, a central de monitoramento | repositório `blizzard`, nginx em `127.0.0.1:8080` |
-| `http://casa.blizzard.net/` | Rotina da Ana Liz | página estática em `apps/rotina/` |
-| `http://10.255.200.100/` ou qualquer outro nome | Página inicial com a lista das aplicações | `inicio/index.html` |
+| `http://casa.blizzard.net/` | Portal da casa, com a lista das aplicações | `casa/index.html` |
+| `http://casa.blizzard.net/rotina/` | Rotina da Ana Liz (link permanente do iPad) | `casa/rotina/` |
+| `http://casa.blizzard.net/manutencao/` | Manutenção da casa (cronograma a criar) | `casa/manutencao/` |
+
+O IP do Pi (`http://10.255.200.100/`), ou qualquer outro nome, abre o mesmo portal.
+
+## Estrutura
+
+```
+Caddyfile            nomes e rotas do proxy de entrada
+docker-compose.yml   o Caddy (porta 80)
+install.sh           tira a Blizzard da porta 80 e sobe o Caddy
+casa/                o portal, servido em casa.blizzard.net
+  index.html         página inicial com a lista das aplicações
+  casa.css           estilo comum às páginas do portal
+  rotina/            Rotina da Ana Liz
+  manutencao/        Manutenção da casa
+```
+
+Uma aplicação estática é uma subpasta de `casa/`: basta criar `casa/<nome>/index.html` e pôr o link no
+portal. Mudanças nos arquivos valem na hora, sem reiniciar nada.
 
 ## Instalação
 
@@ -45,7 +64,20 @@ Antes do DNS, dá para testar no próprio Pi:
 curl -sI -H 'Host: casa.blizzard.net' http://127.0.0.1/ | head -1
 ```
 
-## Publicar uma aplicação nova
+## Rotina no iPad
+
+O link permanente da rotina é **`http://casa.blizzard.net/rotina/`**.
+
+1. Abra o link no Safari do iPad.
+2. Toque em *Compartilhar → Adicionar à Tela de Início*. O ícone "Rotina" abre a página em tela cheia,
+   sem a barra do Safari.
+3. Para a tela não apagar, vá em *Ajustes → Tela e Brilho → Bloqueio Automático → Nunca*, com o iPad no
+   carregador. Para travar o iPad só na rotina, use o *Acesso Guiado*, em *Ajustes → Acessibilidade*.
+
+A página confere o servidor a cada 5 minutos. Quando `casa/rotina/index.html` muda (depois de um
+`git pull` no Pi), ela se recarrega sozinha e ninguém precisa mexer no iPad.
+
+## Publicar uma aplicação com servidor próprio
 
 Cada aplicação vive no próprio repositório, com o próprio `docker compose`, e escuta **só em
 `127.0.0.1`**, numa porta livre (8081, 8082…). Assim ela não aparece na rede sem passar pelo proxy.
@@ -57,12 +89,13 @@ Cada aplicação vive no próprio repositório, com o próprio `docker compose`,
    	reverse_proxy 127.0.0.1:8081
    }
    ```
-   Uma página estática pode ficar em `apps/<nome>/` e ser servida com `root` e `file_server`, como a rotina.
+   Para ela ficar dentro do portal (`casa.blizzard.net/<nome>/`), use `handle_path /<nome>/*` com o
+   `reverse_proxy` dentro do bloco `casa.blizzard.net`, desde que a aplicação funcione num subcaminho.
 3. Recarregue o Caddy sem derrubar nada:
    ```bash
    sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
    ```
-4. Crie o nome no DNS e acrescente o item em `inicio/index.html`.
+4. Crie o nome no DNS, se for um nome novo, e acrescente o item em `casa/index.html`.
 
 ### Portas em uso no Pi
 

@@ -9,8 +9,7 @@ services:
     network_mode: host
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./inicio:/srv/inicio:ro
-      - ./apps:/srv/apps:ro
+      - ./casa:/srv/casa:ro
       - caddy-data:/data
       - caddy-config:/config
     environment:

@@ -1,0 +1,31 @@
+/* Estilo comum às páginas do portal da casa (casa.blizzard.net). */
+:root {
+  --bg: #f7f4ee; --card: #ffffff; --line: #e6dfd2; --text: #2b2a28; --muted: #6e6963; --accent: #b5532b;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1a1816; --card: #24211e; --line: #37322c; --text: #f1ece4; --muted: #a9a198; --accent: #e08a62; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; padding: 48px 16px; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 720px; margin: 0 auto; }
+header { margin-bottom: 28px; }
+.eyebrow { margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 0 0 4px; font-size: 32px; letter-spacing: -0.01em; }
+.sub { margin: 0; color: var(--muted); }
+.apps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+a.app {
+  display: flex; align-items: center; gap: 16px; padding: 18px 20px; min-height: 76px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; color: inherit; text-decoration: none;
+}
+a.app:hover, a.app:focus-visible { border-color: var(--accent); outline: none; }
+.dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--dot); }
+.body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.name { font-weight: 700; font-size: 18px; }
+.desc { color: var(--muted); font-size: 14px; }
+.path { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.note { background: var(--card); border: 1px dashed var(--line); border-radius: 16px; padding: 20px; color: var(--muted); }
+.back { display: inline-block; margin-bottom: 24px; color: var(--accent); font-weight: 600; text-decoration: none; }
+@media (max-width: 520px) { .path { display: none; } }
