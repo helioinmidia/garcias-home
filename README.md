@@ -26,7 +26,8 @@ casa/                o portal, servido em casa.blizzard.net
   index.html         página inicial com a lista das aplicações
   casa.css           estilo comum às páginas do portal
   rotina/            Rotina da Ana Liz (aplicação: index.html, app.js, rotina.css)
-    rotina.json      horários e atividades de cada dia da semana
+    rotina.json      horários e atividades de cada dia da semana, agendas, exceções e projetos
+    projetos.html    Projetos da manhã: o projeto de cada dia da semana, com ideias e materiais
     cartaz.html      o cartaz original, para imprimir
   manutencao/        Manutenção da casa
 api/rotina.py        API da rotina: o que foi feito e os comentários, por dia; resumo para o HA
@@ -114,6 +115,12 @@ A página confere o servidor a cada 5 minutos. Quando algum arquivo dela muda (d
   "Sábado"…). A escolha é automática: exceção do calendário (`excecoes` no `rotina.json`: feriados, férias)
   ou o dia da semana. Toque no botão para trocar a agenda daquele dia, por exemplo "Dia sem escola" num
   imprevisto; a troca fica gravada no dia, vale para todos os aparelhos, e "Voltar ao automático" desfaz.
+- **Projetos da manhã:** `casa.blizzard.net/rotina/projetos.html` mostra o projeto de cada dia da semana
+  (segunda desenho, terça inglês, quarta investigação, quinta quadrinhos, sexta escolha da Ana Liz,
+  sábado o projeto grande), com descrição, ideias para começar, materiais e quem participa. A linha das
+  10:20 na rotina (e a do sábado à tarde) mostra o projeto do dia com um link para as ideias. A página
+  abre no dia de hoje e, parada 5 minutos no iPad, volta sozinha para a rotina. Tudo vem da chave
+  `projetos` do `rotina.json` (`dias` de 1 a 6; a atividade recebe `"projeto": true`).
 - **Mudar horários ou atividades:** edite `casa/rotina/rotina.json`.
   - `agendas`: cada uma tem `id`, `nome`, `diasDaSemana` (0 = domingo … 6 = sábado; `[]` para uma agenda
     que só entra por exceção ou pelo botão, como `folga`) e os `blocos` de atividades.

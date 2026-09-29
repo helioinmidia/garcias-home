@@ -15,6 +15,66 @@
     {"de": "2026-12-25", "ate": "2026-12-25", "agenda": "folga", "motivo": "Natal"},
     {"de": "2027-01-01", "ate": "2027-01-01", "agenda": "folga", "motivo": "Ano Novo"}
   ],
+  "projetos": {
+    "titulo": "Projetos da manhã",
+    "intro": "Todo dia, às 10:20, 40 minutos para criar e descobrir junto com a mamãe ou o papai. Cada dia da semana tem um tipo de projeto; as ideias abaixo são pontos de partida, e a melhor ideia é sempre a da Ana Liz.",
+    "dias": {
+      "1": {
+        "nome": "Desenho",
+        "emoji": "🎨",
+        "resumo": "Desenhar de verdade: olhar, tentar, melhorar.",
+        "descricao": "Segunda é dia de desenho. Escolha uma coisa para desenhar e observe bem antes de começar: formas, sombras, detalhes. Depois pinte ou faça uma segunda versão melhor que a primeira.",
+        "ideias": ["Desenhe um objeto da casa olhando para ele (uma fruta, um sapato, a xícara do café).", "Retrato de alguém da família, ou do bichinho de estimação.", "Um animal que você nunca desenhou, olhando uma foto.", "Uma cena inventada: sua casa numa ilha, no espaço ou debaixo do mar.", "Continue um desenho da semana passada e melhore uma parte."],
+        "materiais": ["Caderno de desenho", "Lápis e borracha", "Lápis de cor, giz ou canetinha"],
+        "com": ["mae"]
+      },
+      "2": {
+        "nome": "Inglês",
+        "emoji": "🇬🇧",
+        "resumo": "Palavras novas saindo do Duolingo e entrando na casa.",
+        "descricao": "Terça é dia de inglês. Pegue as palavras que apareceram no Duolingo esta semana e use de verdade: nomeie coisas da casa, invente frases, cante, brinque de professora.",
+        "ideias": ["Faça etiquetas em inglês para 5 objetos da casa e cole neles.", "Jogo de mímica: um faz o gesto, o outro diz a palavra em inglês.", "Desenhe 6 palavras novas e escreva o nome embaixo de cada uma.", "Grave um vídeo curto se apresentando em inglês: nome, idade, o que gosta.", "Cante uma música em inglês e descubra o que a letra quer dizer."],
+        "materiais": ["Papel e fita adesiva para etiquetas", "Caderno", "Tablet ou celular só para o Duolingo e a música"],
+        "com": ["mae", "pai"]
+      },
+      "3": {
+        "nome": "Investigação",
+        "emoji": "🔬",
+        "resumo": "Uma pergunta, um experimento, uma resposta.",
+        "descricao": "Quarta é dia de investigar. Escolha uma pergunta que você tem curiosidade, faça um experimento ou pesquise, e anote o que descobriu com um desenho ou uma frase.",
+        "ideias": ["Por que o gelo derrete mais rápido no sol? Teste com dois copos e um relógio.", "Plante um feijão no algodão e acompanhe todo dia.", "Misture cores de tinta e anote quais nascem de quais.", "Meça a altura de todos da casa e monte um gráfico.", "Descubra de onde vem a água da torneira e para onde vai."],
+        "materiais": ["Caderno de investigação", "Copos, algodão, feijão, régua ou fita métrica conforme a ideia", "Um adulto para ajudar na pesquisa"],
+        "com": ["pai"]
+      },
+      "4": {
+        "nome": "Quadrinhos",
+        "emoji": "💬",
+        "resumo": "Uma história com começo, meio e fim em quadrinhos.",
+        "descricao": "Quinta é dia de história em quadrinhos. Invente personagens, divida a página em quadros e conte uma história com balões de fala. Pode ser uma tirinha de 3 quadros ou uma página inteira.",
+        "ideias": ["Uma tirinha de 3 quadros com uma piada no final.", "A aventura do seu bichinho quando ninguém está em casa.", "Uma história sobre o que aconteceu na escola, com você como heroína.", "Um personagem novo: desenhe ele em 4 expressões diferentes.", "Continue os quadrinhos da semana passada: capítulo 2."],
+        "materiais": ["Folhas brancas ou caderno de quadrinhos", "Régua para os quadros", "Lápis, caneta preta e cores"],
+        "com": ["mae"]
+      },
+      "5": {
+        "nome": "Escolha da Ana Liz",
+        "emoji": "⭐",
+        "resumo": "Sexta é dela: repete o melhor da semana ou inventa um projeto novo.",
+        "descricao": "Sexta é o dia de escolher. Pode repetir o projeto que você mais gostou na semana, terminar algo que ficou pela metade ou propor uma ideia nova: culinária, música, teatro, construção, o que quiser. Combine com a mamãe ou o papai no café da manhã.",
+        "ideias": ["Uma receita simples: bolo de caneca, salada de frutas, sanduíche especial.", "Montar uma cabana na sala e criar uma peça de teatro.", "Construir algo com caixas de papelão: robô, casa, foguete.", "Preparar uma apresentação para a revisão de domingo.", "Um jogo de tabuleiro inventado, com regras escritas."],
+        "materiais": ["Depende da ideia: combinem na véspera para ter tudo em casa"],
+        "com": ["mae", "pai"]
+      },
+      "6": {
+        "nome": "Projeto grande",
+        "emoji": "📚",
+        "resumo": "Sábado à tarde: um projeto que cresce semana a semana.",
+        "descricao": "No sábado o projeto é maior e continua de uma semana para a outra: seu livro ilustrado ou o mural das palavras em inglês. Cada sábado acrescenta uma parte, e na revisão de domingo você mostra o que avançou.",
+        "ideias": ["Livro ilustrado: uma página nova por sábado, com texto e desenho.", "Mural das palavras em inglês: acrescente as palavras da semana com desenhos.", "Um mapa da vizinhança, desenhado depois do passeio da manhã.", "Um álbum dos passeios, com desenho e uma frase sobre cada um."],
+        "materiais": ["Cartolina ou o caderno do livro", "Cola, tesoura e canetinhas", "As palavras novas da semana"],
+        "com": ["pai", "mae"]
+      }
+    }
+  },
   "agendas": [
     {
       "id": "semana",
@@ -31,7 +91,7 @@
             {"id": "cafe", "hora": "09:25", "titulo": "Desça para o café da manhã", "descricao": "Ajude a pôr a mesa e tome café com a mamãe e o papai. Converse com eles e veja qual é o projeto da manhã de hoje.", "quem": ["mae", "pai"]},
             {"id": "duolingo", "hora": "09:40", "titulo": "Faça a lição de inglês no Duolingo (20 min)", "descricao": "Faça a lição de inglês do dia, mantenha sua sequência e depois guarde o aparelho.", "duracao": 20},
             {"id": "tarefas-escola", "hora": "10:00", "titulo": "Faça as tarefas da escola (20 min)", "descricao": "Olhe a agenda, faça a lição de casa e separe o material do dia. Fazendo de manhã, a noite fica livre para descansar. Se tiver dúvida, chame a mamãe ou o papai.", "quem": ["pai"], "podem": ["mae"], "duracao": 20},
-            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40},
+            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40, "projeto": true},
             {"id": "mexer-corpo", "hora": "11:00", "titulo": "Mexa o corpo", "descricao": "Ande de bicicleta, brinque no quintal, pule corda ou caminhe (25 min). Gaste energia agora para prestar atenção na escola.", "duracao": 25},
             {"id": "brincar-manha", "hora": "11:25", "titulo": "Brinque, leia ou desenhe", "descricao": "Brinque, leia um livro ou desenhe no seu caderno."},
             {"id": "banho-escola", "hora": "11:50", "titulo": "Tome banho e arrume-se para a escola", "descricao": "Tome banho, vista o uniforme que você separou ontem à noite, penteie o cabelo e calce o tênis."},
@@ -76,7 +136,7 @@
             {"id": "cafe", "hora": "09:25", "titulo": "Desça para o café da manhã", "descricao": "Ajude a pôr a mesa e tome café com a mamãe e o papai. Converse com eles e veja qual é o projeto da manhã de hoje.", "quem": ["mae", "pai"]},
             {"id": "duolingo", "hora": "09:40", "titulo": "Faça a lição de inglês no Duolingo (20 min)", "descricao": "Faça a lição de inglês do dia, mantenha sua sequência e depois guarde o aparelho.", "duracao": 20},
             {"id": "tarefas-escola", "hora": "10:00", "titulo": "Faça as tarefas da escola (20 min)", "descricao": "Olhe a agenda, faça a lição de casa e separe o material do dia. Fazendo de manhã, a noite fica livre para descansar. Se tiver dúvida, chame a mamãe ou o papai.", "quem": ["pai"], "podem": ["mae"], "duracao": 20},
-            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40},
+            {"id": "projeto", "hora": "10:20", "titulo": "Faça o projeto da manhã (40 min)", "descricao": "Cada dia um projeto diferente: desenho, inglês no Duolingo, investigação ou quadrinhos. Aprenda junto com a mamãe ou o papai. Veja as ideias de cada dia na página de projetos.", "quem": ["mae"], "podem": ["pai"], "duracao": 40, "projeto": true},
             {"id": "mexer-corpo", "hora": "11:00", "titulo": "Mexa o corpo", "descricao": "Ande de bicicleta, brinque no quintal, pule corda ou caminhe (25 min). Gaste energia agora para prestar atenção na escola.", "duracao": 25},
             {"id": "brincar-manha", "hora": "11:25", "titulo": "Brinque, leia ou desenhe", "descricao": "Brinque, leia um livro ou desenhe no seu caderno."},
             {"id": "almoco", "hora": "12:10", "titulo": "Almoce", "descricao": "Almoce com calma e ajude a pôr a mesa e a tirar o seu prato.", "quem": ["mae"], "podem": ["pai"]}
@@ -114,7 +174,7 @@
           "tarefas": [
             {"id": "sab-passeio", "hora": "09:00", "rotulo": "Manhã", "titulo": "Passeie e descubra", "descricao": "Vá a um museu, feira, biblioteca, ateliê ou à natureza. Leve seu caderno de desenho.", "quem": ["fam"]},
             {"id": "sab-almoco", "hora": "13:00", "titulo": "Almoce em família", "descricao": "Ajude a pôr a mesa e conte o que viu no passeio.", "quem": ["fam"]},
-            {"id": "sab-projeto", "hora": "14:30", "rotulo": "Tarde", "titulo": "Faça um projeto grande com a mamãe ou o papai", "descricao": "Crie seu livro ilustrado ou um mural com as palavras em inglês que aprendeu no Duolingo.", "quem": ["pai"], "podem": ["mae"]},
+            {"id": "sab-projeto", "hora": "14:30", "rotulo": "Tarde", "titulo": "Faça um projeto grande com a mamãe ou o papai", "descricao": "Crie seu livro ilustrado ou um mural com as palavras em inglês que aprendeu no Duolingo.", "quem": ["pai"], "podem": ["mae"], "projeto": true},
             {"id": "sab-filme", "hora": "19:30", "rotulo": "Noite", "titulo": "Veja um filme ou jogue em família", "descricao": "Junte todo mundo no sofá.", "quem": ["fam"]}
           ]
         }

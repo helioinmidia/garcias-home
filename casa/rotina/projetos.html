@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Projetos">
+  <meta name="theme-color" content="#FBF6EE">
+  <link rel="apple-touch-icon" href="/rotina/icon.png">
+  <link rel="icon" href="/rotina/icon.png">
+  <link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="rotina.css">
+  <title>Projetos da manhã · Rotina da Ana Liz</title>
+</head>
+<body class="pag-projetos">
+  <header class="topo" id="topo">
+    <div class="topo-in">
+      <div>
+        <p class="eyebrow" id="eyebrow">Rotina da Ana Liz</p>
+        <div class="dia">
+          <h1 id="titulo">Projetos da manhã</h1>
+        </div>
+        <p class="data" id="intro"></p>
+      </div>
+      <div class="relogio">
+        <a class="voltar" href="./">← Voltar à rotina</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="semana projetos-nav" id="dias" aria-label="Projeto de cada dia"></nav>
+
+  <main id="lista">
+    <p class="carregando">Carregando os projetos…</p>
+  </main>
+
+  <div class="conteudo">
+    <footer class="rodape">
+      <span>Para mudar as ideias, edite <code>rotina.json</code> (chave <code>projetos</code>).</span>
+      <span><a href="/">← Casa</a> · <a href="./">Rotina</a></span>
+    </footer>
+  </div>
+
+  <script src="projetos.js" defer></script>
+</body>
+</html>

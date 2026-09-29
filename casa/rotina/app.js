@@ -81,6 +81,7 @@
           ate: t.ate || null,
           titulo: t.titulo,
           duracao: t.duracao > 0 ? t.duracao : null,
+          projeto: !!t.projeto,
           descricao: (t.descricaoPorDia && t.descricaoPorDia[dow]) || t.descricao || '',
           quem: t.quem || [],
           podem: t.podem || [],
@@ -185,7 +186,10 @@
     var feitoEm = el('div', 'feito-em');
     var previa = el('p', 'coment-previa');
     previa.hidden = true;
-    corpo.append(tag, titulo, desc, quem, feitoEm, previa);
+    corpo.append(tag, titulo, desc, quem);
+    var proj = projetoDoDia(t);
+    if (proj) corpo.append(proj);
+    corpo.append(feitoEm, previa);
 
     var acoes = el('div', 'acoes');
     var bc = el('button', 'btn-coment');
@@ -234,6 +238,26 @@
   }
 
   function comentarioDe(id) { return ((estado.tarefas[id] || {}).comentario) || ''; }
+
+  // Nas atividades marcadas com "projeto": o projeto do dia (rotina.json → projetos.dias[dia da semana]).
+  var SLUGS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+  function projetoDoDia(t) {
+    if (!t.projeto || !rotina.projetos || !rotina.projetos.dias) return null;
+    var dow = deChave(dataVista).getDay();
+    var p = rotina.projetos.dias[String(dow)];
+    var caixa = el('div', 'proj-hoje');
+    caixa.append(el('span', 'proj-rotulo', dataVista === hojeChave() ? 'Projeto de hoje' : 'Projeto do dia'));
+    if (p) {
+      caixa.append(el('b', null, (p.emoji ? p.emoji + ' ' : '') + p.nome));
+      if (p.resumo) caixa.append(el('span', 'proj-res', p.resumo));
+    } else {
+      caixa.append(el('span', 'proj-res', 'Escolha livre: veja as ideias da semana.'));
+    }
+    var link = el('a', null, 'Ver ideias →');
+    link.href = 'projetos.html#' + SLUGS[dow];
+    caixa.append(link);
+    return caixa;
+  }
 
   function atualizaLinha(id) {
     var l = linhas[id];
