@@ -494,81 +494,85 @@ def aplica_atualizacoes():
     for nome in sorted(os.listdir(pasta)):
         if not nome.endswith(".json"):
             continue
-        with open(os.path.join(pasta, nome), encoding="utf-8") as fh:
-            atualizacao = json.load(fh)
-        uid, pessoa = atualizacao["id"], atualizacao["pessoa"]
-        if not os.path.exists(caminho(pessoa)):
-            continue
-        with trava:
-            doc = le(pessoa)
-            if uid in doc["migracoes"]:
+        # Uma atualização com problema fica de fora (e aparece no log); as outras e a API seguem.
+        try:
+            with open(os.path.join(pasta, nome), encoding="utf-8") as fh:
+                atualizacao = json.load(fh)
+            uid, pessoa = atualizacao["id"], atualizacao["pessoa"]
+            if not os.path.exists(caminho(pessoa)):
                 continue
-            for modalidade in atualizacao.get("modalidades", []):
-                item = valida(ESQUEMAS["modalidades"], modalidade)
-                item["id"] = modalidade["id"]
-                doc["modalidades"] = [m for m in doc["modalidades"] if m.get("id") != item["id"]] + [item]
-            padrao = atualizacao.get("semModalidade")
-            if padrao:
-                for colecao in ("medicamentos", "exames", "consultas", "pendencias"):
+            with trava:
+                doc = le(pessoa)
+                if uid in doc["migracoes"]:
+                    continue
+                for modalidade in atualizacao.get("modalidades", []):
+                    item = valida(ESQUEMAS["modalidades"], modalidade)
+                    item["id"] = modalidade["id"]
+                    doc["modalidades"] = [m for m in doc["modalidades"] if m.get("id") != item["id"]] + [item]
+                padrao = atualizacao.get("semModalidade")
+                if padrao:
+                    for colecao in ("medicamentos", "exames", "consultas", "pendencias"):
+                        for item in doc[colecao]:
+                            if not item.get("modalidade"):
+                                item["modalidade"] = padrao
+                    for chave in ("peso", "proteina"):
+                        if not doc[chave].get("modalidade"):
+                            doc[chave]["modalidade"] = padrao
+                    if doc.get("plano") and not doc["plano"].get("modalidade"):
+                        doc["plano"]["modalidade"] = padrao
+                # Textos trocados só se ainda forem exatamente o original (o que foi editado na tela fica como está):
+                # {"colecao": {"id": {"campo": [["texto antigo", ...], "texto novo"]}}}
+                for colecao, por_id in atualizacao.get("substituirSe", {}).items():
                     for item in doc[colecao]:
-                        if not item.get("modalidade"):
-                            item["modalidade"] = padrao
-                for chave in ("peso", "proteina"):
-                    if not doc[chave].get("modalidade"):
-                        doc[chave]["modalidade"] = padrao
-                if doc.get("plano") and not doc["plano"].get("modalidade"):
-                    doc["plano"]["modalidade"] = padrao
-            # Textos trocados só se ainda forem exatamente o original (o que foi editado na tela fica como está):
-            # {"colecao": {"id": {"campo": [["texto antigo", ...], "texto novo"]}}}
-            for colecao, por_id in atualizacao.get("substituirSe", {}).items():
-                for item in doc[colecao]:
-                    for campo, (antigos, novo) in por_id.get(item.get("id"), {}).items():
-                        if (item.get(campo) or "").strip() in [a.strip() for a in antigos]:
-                            item[campo] = ESQUEMAS[colecao][campo](campo, novo)
-            # Configuração (peso/proteína): só preenche chaves ainda vazias.
-            for chave, valores in atualizacao.get("config", {}).items():
-                for campo, valor in valores.items():
-                    if not doc[chave].get(campo):
-                        doc[chave][campo] = CONFIG[chave][campo](campo, valor)
-            # Doses tomadas lançadas depois ({"AAAA-MM-DD": ["med", ...]}); não mexe nas já marcadas.
-            for data, meds in atualizacao.get("tomadas", {}).items():
-                data_ou_vazio("tomadas", data)
-                dia = doc["tomadas"].setdefault(data, {})
-                for med in meds:
-                    dia.setdefault(med, f"{data}T00:00:00 (lançado depois)")
-            # Pendências concluídas (só marca; não desmarca o que já foi mexido na tela).
-            for pid in atualizacao.get("concluirPendencias", []):
-                for pend in doc["pendencias"]:
-                    if pend.get("id") == pid:
-                        pend["feito"] = True
-            # Pesagens: entram só nas datas ainda sem registro (nunca sobrescrevem o que foi lançado na tela).
-            for data, reg in atualizacao.get("peso", {}).items():
-                data_ou_vazio("peso", data)
-                if data not in doc["peso"]["registros"]:
-                    doc["peso"]["registros"][data] = {"kg": numero(20, 400)("kg", reg.get("kg")), "nota": texto(300)("nota", reg.get("nota"))}
-            # Texto acrescentado ao resumo de uma consulta existente (uma vez; não repete se já estiver lá).
-            for cid, extra in atualizacao.get("acrescentarResumo", {}).items():
-                for consulta in doc["consultas"]:
-                    if consulta.get("id") == cid and extra.strip() not in (consulta.get("resumo") or ""):
-                        consulta["resumo"] = ((consulta.get("resumo") or "").rstrip() + "\n\n" + extra.strip()).strip()[:6000]
-            for colecao, itens in atualizacao.get("itens", {}).items():
-                existentes = {i.get("id") for i in doc[colecao]}
-                for bruto in itens:
-                    if bruto["id"] in existentes:
-                        continue
-                    item = valida(ESQUEMAS[colecao], bruto, PADROES[colecao])
-                    item["id"] = bruto["id"]
-                    doc[colecao].append(item)
-            # Resultados novos de indicadores já cadastrados: só entram nas datas ainda sem valor.
-            # {"id-do-indicador": [{"data": ..., "valor": ..., "nota": ...}]}
-            for rid, novos in atualizacao.get("resultadosValores", {}).items():
-                for res in doc["resultados"]:
-                    if res.get("id") == rid:
-                        datas = {v["data"] for v in res["valores"]}
-                        res["valores"] = valores_lab("valores", res["valores"] + [v for v in novos if v.get("data") not in datas])
-            doc["migracoes"].append(uid)
-            grava(doc)
-            print(f"atualização {uid} aplicada a {pessoa}", file=sys.stderr)
+                        for campo, (antigos, novo) in por_id.get(item.get("id"), {}).items():
+                            if (item.get(campo) or "").strip() in [a.strip() for a in antigos]:
+                                item[campo] = ESQUEMAS[colecao][campo](campo, novo)
+                # Configuração (peso/proteína): só preenche chaves ainda vazias.
+                for chave, valores in atualizacao.get("config", {}).items():
+                    for campo, valor in valores.items():
+                        if not doc[chave].get(campo):
+                            doc[chave][campo] = CONFIG[chave][campo](campo, valor)
+                # Doses tomadas lançadas depois ({"AAAA-MM-DD": ["med", ...]}); não mexe nas já marcadas.
+                for data, meds in atualizacao.get("tomadas", {}).items():
+                    data_ou_vazio("tomadas", data)
+                    dia = doc["tomadas"].setdefault(data, {})
+                    for med in meds:
+                        dia.setdefault(med, f"{data}T00:00:00 (lançado depois)")
+                # Pendências concluídas (só marca; não desmarca o que já foi mexido na tela).
+                for pid in atualizacao.get("concluirPendencias", []):
+                    for pend in doc["pendencias"]:
+                        if pend.get("id") == pid:
+                            pend["feito"] = True
+                # Pesagens: entram só nas datas ainda sem registro (nunca sobrescrevem o que foi lançado na tela).
+                for data, reg in atualizacao.get("peso", {}).items():
+                    data_ou_vazio("peso", data)
+                    if data not in doc["peso"]["registros"]:
+                        doc["peso"]["registros"][data] = {"kg": numero(20, 400)("kg", reg.get("kg")), "nota": texto(300)("nota", reg.get("nota"))}
+                # Texto acrescentado ao resumo de uma consulta existente (uma vez; não repete se já estiver lá).
+                for cid, extra in atualizacao.get("acrescentarResumo", {}).items():
+                    for consulta in doc["consultas"]:
+                        if consulta.get("id") == cid and extra.strip() not in (consulta.get("resumo") or ""):
+                            consulta["resumo"] = ((consulta.get("resumo") or "").rstrip() + "\n\n" + extra.strip()).strip()[:6000]
+                for colecao, itens in atualizacao.get("itens", {}).items():
+                    existentes = {i.get("id") for i in doc[colecao]}
+                    for bruto in itens:
+                        if bruto["id"] in existentes:
+                            continue
+                        item = valida(ESQUEMAS[colecao], bruto, PADROES[colecao])
+                        item["id"] = bruto["id"]
+                        doc[colecao].append(item)
+                # Resultados novos de indicadores já cadastrados: só entram nas datas ainda sem valor.
+                # {"id-do-indicador": [{"data": ..., "valor": ..., "nota": ...}]}
+                for rid, novos in atualizacao.get("resultadosValores", {}).items():
+                    for res in doc["resultados"]:
+                        if res.get("id") == rid:
+                            datas = {v["data"] for v in res["valores"]}
+                            res["valores"] = valores_lab("valores", res["valores"] + [v for v in novos if v.get("data") not in datas])
+                doc["migracoes"].append(uid)
+                grava(doc)
+                print(f"atualização {uid} aplicada a {pessoa}", file=sys.stderr)
+        except Exception as e:  # noqa: BLE001
+            print(f"atualização {nome} não aplicada: {e!r}", file=sys.stderr)
 
 
 def pasta_arquivos(pessoa):
@@ -878,11 +882,63 @@ class Handler(BaseHTTPRequestHandler):
         self._envia(404, {"erro": "rota inexistente"})
 
 
+# ---------- recarga automática ----------
+# Depois de um "git pull" a API se reinicia sozinha (código novo e atualizações de dados), sem precisar do
+# install.sh: vigia este arquivo e api/saude-inicial/; quando mudam e ficam estáveis por um ciclo, confere se
+# o código compila e os JSON abrem, e se reexecuta no mesmo processo (o container nem percebe).
+VIGIA_S = 15
+
+
+def assinatura():
+    arquivos = [os.path.abspath(__file__)]
+    for pasta in (INICIAL_DIR, os.path.join(INICIAL_DIR, "atualizacoes")):
+        if os.path.isdir(pasta):
+            arquivos += [os.path.join(pasta, n) for n in sorted(os.listdir(pasta)) if n.endswith(".json")]
+    saida = []
+    for arq in arquivos:
+        try:
+            st = os.stat(arq)
+            saida.append((arq, st.st_mtime_ns, st.st_size))
+        except OSError:
+            pass
+    return tuple(saida)
+
+
+def pronto_para_recarregar(sig):
+    try:
+        with open(os.path.abspath(__file__), encoding="utf-8") as fh:
+            compile(fh.read(), __file__, "exec")
+        for arq, _, _ in sig[1:]:
+            with open(arq, encoding="utf-8") as fh:
+                json.load(fh)
+        return True
+    except Exception as e:  # noqa: BLE001
+        print(f"recarga adiada: {e!r}", file=sys.stderr)
+        return False
+
+
+def vigia():
+    atual, pendente = assinatura(), None
+    while True:
+        threading.Event().wait(VIGIA_S)
+        nova = assinatura()
+        if nova == atual:
+            pendente = None
+        elif nova != pendente:
+            pendente = nova  # mudou: espera um ciclo sem mudanças (o git pull pode estar no meio)
+        elif pronto_para_recarregar(nova):
+            print("arquivos da API mudaram: reiniciando", file=sys.stderr)
+            sys.stderr.flush()
+            with trava:  # nenhuma gravação pela metade
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
 def main():
     semeia()
     aplica_atualizacoes()
     servidor = ThreadingHTTPServer((BIND, PORT), Handler)
     print(f"API de saúde em http://{BIND}:{PORT}, dados em {DADOS_DIR}", file=sys.stderr)
+    threading.Thread(target=vigia, daemon=True).start()
     servidor.serve_forever()
 
 

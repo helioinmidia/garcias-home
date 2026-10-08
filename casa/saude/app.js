@@ -828,6 +828,12 @@
   // Lista compacta: uma linha por indicador (mini gráfico, valor e situação). Tocar abre o detalhe só dela.
   var resAberto = null;
   function cartaoResultados() {
+    // API antiga (git pull sem reiniciar o serviço): ela nem conhece a coleção de resultados.
+    if (!Array.isArray(doc.resultados)) {
+      return add(cartao('res-sec', 'res-titulo'), cabecalho('Resultados de exames', 'res-titulo'),
+        h('p', { class: 'alerta' }, 'O servidor da casa ainda está com a versão anterior e não enviou os resultados. No Pi, rode uma vez: ',
+          h('code', null, 'cd ~/garcias-home && ./install.sh'), '. Depois disso as próximas atualizações entram sozinhas.'));
+    }
     var todos = resultados();
     var c = add(cartao('res-sec', 'res-titulo'), cabecalho('Resultados de exames', 'res-titulo',
       h('span', { class: 'acoes' },

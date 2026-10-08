@@ -71,6 +71,10 @@ Pode rodar quantas vezes quiser. Ele sobe o que faltar (a API da rotina, por exe
 O reinício é necessário porque o `Caddyfile` é montado como arquivo e o `git pull` o substitui. Não
 precisa reiniciar o Pi de novo.
 
+A API do acompanhamento médico se reinicia sozinha depois de um `git pull`. Ela confere a cada 15 segundos
+se `api/saude.py` ou `api/saude-inicial/` mudaram, e então aplica as atualizações de dados novas. Para
+mudanças só nela, nas páginas ou nos dados, basta o `git pull`.
+
 ## DNS
 
 Cada nome precisa apontar para `10.255.200.100` no DNS da rede, que é o do gateway `10.255.200.254`.
