@@ -188,6 +188,14 @@ Exames mostram no menu quantos itens estão em aberto. As seções:
   de referência do próprio laudo, os números de controle (peso ideal, controle de gordura e muscular), a
   distribuição por segmento e a evolução entre avaliações. "Nova avaliação" copia aparelho, local e faixas
   da anterior.
+- **Resultados:** um gráfico por indicador de exame de sangue (LDL, glicose, testosterona…) com o
+  histórico de todas as coletas:
+  - ao fundo, as faixas do próprio laudo: verde dentro da referência, amarelo atenção, vermelho risco;
+  - abas para "Atenção" (o último valor fora da referência), "Remédios" e cada grupo do laudo;
+  - os remédios ligados ao indicador, com o efeito esperado (sobe, desce, acompanhar) e uma linha
+    tracejada no início do tratamento. No cartão Medicamentos, cada remédio mostra esses indicadores;
+  - "Lançar resultado" acrescenta o valor de uma nova coleta. Em "Editar", os valores ficam um por linha,
+    no formato `dd/mm/aaaa; valor; nota`.
 - **Documentos:** receitas, pedidos e resultados de exames, em PDF ou foto, até 15 MB cada. Ficam no Pi
   em `dados/saude/arquivos/<pessoa>/` e abrem no próprio navegador.
 - **Plano alimentar**, quando houver um.

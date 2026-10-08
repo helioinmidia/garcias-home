@@ -1,0 +1,371 @@
+{
+  "id": "2026-10-resultados-laboratorio",
+  "pessoa": "helio",
+  "descricao": "Resultados de laboratório (LANAC) com o histórico dos laudos: check-up de 15/06/2026 (Dr. Marcelo de Abreu Gomes, Check-up Omint) e hormônios de 19/03/2026 (Urologia), com os resultados anteriores de 2022 a 2024 que vêm nos próprios laudos. Cada indicador fica vinculado aos medicamentos que mexem nele.",
+  "itens": {
+    "exames": [
+      {
+        "id": "lab-2026-06-15",
+        "modalidade": "",
+        "nome": "Check-up laboratorial (sangue e urina)",
+        "status": "feito",
+        "data": "2026-06-15",
+        "local": "LANAC · NTO Central",
+        "observacao": "Pedido: Dr. Marcelo de Abreu Gomes (Check-up Omint)\nGráficos na aba Resultados\nUrina tipo 1: normal"
+      },
+      {
+        "id": "lab-2026-03-19",
+        "modalidade": "urologia",
+        "nome": "Hormônios e glicose",
+        "status": "feito",
+        "data": "2026-03-19",
+        "local": "LANAC",
+        "observacao": "Testosterona total e livre, estradiol, FSH, LH, prolactina, SHBG, glicose\nGráficos na aba Resultados"
+      }
+    ],
+    "resultados": [
+      {
+        "id": "glicose", "grupo": "Glicemia", "nome": "Glicose em jejum", "unidade": "mg/dL",
+        "minimo": 60, "maximo": 99, "referencia": "60 a 99 mg/dL · 100 a 125 alterada (sugere curva glicêmica) · 126 ou mais: diabetes",
+        "faixas": [
+          {"ate": 60, "rotulo": "Baixa", "nivel": "atencao"},
+          {"ate": 100, "rotulo": "Normal", "nivel": "ok"},
+          {"ate": 126, "rotulo": "Alterada", "nivel": "atencao"},
+          {"ate": null, "rotulo": "Diabetes", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 83}, {"data": "2024-02-24", "valor": 95}, {"data": "2024-10-16", "valor": 88},
+          {"data": "2024-12-02", "valor": 90}, {"data": "2026-03-19", "valor": 91}, {"data": "2026-06-15", "valor": 117.9}
+        ]
+      },
+      {
+        "id": "hba1c", "grupo": "Glicemia", "nome": "Hemoglobina glicada (HbA1c)", "unidade": "%",
+        "minimo": null, "maximo": 5.69, "referencia": "Normal abaixo de 5,7 % · pré-diabetes 5,7 a 6,4 % · diabetes acima de 6,4 %",
+        "faixas": [
+          {"ate": 5.7, "rotulo": "Normal", "nivel": "ok"},
+          {"ate": 6.5, "rotulo": "Pré-diabetes", "nivel": "atencao"},
+          {"ate": null, "rotulo": "Diabetes", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2024-10-16", "valor": 6.0},
+          {"data": "2026-06-15", "valor": 6.3, "nota": "Glicemia média estimada: 134 mg/dL"}
+        ]
+      },
+      {
+        "id": "colesterol-total", "grupo": "Colesterol e triglicerídeos", "nome": "Colesterol total", "unidade": "mg/dL",
+        "minimo": null, "maximo": 189.99, "referencia": "Desejável abaixo de 190 mg/dL",
+        "faixas": [
+          {"ate": 190, "rotulo": "Desejável", "nivel": "ok"},
+          {"ate": null, "rotulo": "Acima do desejável", "nivel": "atencao"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 173}, {"data": "2024-02-24", "valor": 194}, {"data": "2024-10-16", "valor": 185}, {"data": "2026-06-15", "valor": 184.82}
+        ]
+      },
+      {
+        "id": "hdl", "grupo": "Colesterol e triglicerídeos", "nome": "HDL (colesterol bom)", "unidade": "mg/dL",
+        "minimo": 40.01, "maximo": null, "referencia": "Desejável acima de 40 mg/dL",
+        "faixas": [
+          {"ate": 40, "rotulo": "Baixo", "nivel": "atencao"},
+          {"ate": null, "rotulo": "Desejável", "nivel": "ok"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 40.1}, {"data": "2024-02-24", "valor": 38.3}, {"data": "2024-10-16", "valor": 37.4}, {"data": "2026-06-15", "valor": 32.69}
+        ],
+        "medicamentos": [
+          {"med": "anastrozol", "efeito": "acompanha", "nota": "Pode baixar um pouco o HDL"}
+        ]
+      },
+      {
+        "id": "ldl", "grupo": "Colesterol e triglicerídeos", "nome": "LDL (colesterol ruim)", "unidade": "mg/dL",
+        "minimo": null, "maximo": 114.99, "referencia": "Meta conforme o risco cardiovascular definido pelo médico: abaixo de 115 (baixo) · 100 (intermediário) · 70 (alto) · 50 (muito alto)",
+        "faixas": [
+          {"ate": 115, "rotulo": "Na meta (risco baixo)", "nivel": "ok"},
+          {"ate": 160, "rotulo": "Acima da meta", "nivel": "atencao"},
+          {"ate": null, "rotulo": "Muito acima da meta", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 121}, {"data": "2024-02-24", "valor": 146}, {"data": "2024-10-16", "valor": 131}, {"data": "2026-06-15", "valor": 138.11}
+        ]
+      },
+      {
+        "id": "triglicerideos", "grupo": "Colesterol e triglicerídeos", "nome": "Triglicerídeos", "unidade": "mg/dL",
+        "minimo": null, "maximo": 149.99, "referencia": "Desejável abaixo de 150 mg/dL (em jejum)",
+        "faixas": [
+          {"ate": 150, "rotulo": "Desejável", "nivel": "ok"},
+          {"ate": null, "rotulo": "Acima do desejável", "nivel": "atencao"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 63}, {"data": "2024-02-24", "valor": 102}, {"data": "2024-10-16", "valor": 99}, {"data": "2026-06-15", "valor": 97}
+        ]
+      },
+      {
+        "id": "castelli-1", "grupo": "Colesterol e triglicerídeos", "nome": "Índice de Castelli I (colesterol total ÷ HDL)", "unidade": "",
+        "minimo": null, "maximo": 4.96, "referencia": "Homens: risco baixo até 4,96 · médio 4,97 a 9,54 · elevado 9,55 a 23,99",
+        "faixas": [
+          {"ate": 4.97, "rotulo": "Risco baixo", "nivel": "ok"},
+          {"ate": 9.55, "rotulo": "Risco médio", "nivel": "atencao"},
+          {"ate": 24, "rotulo": "Risco elevado", "nivel": "risco"},
+          {"ate": null, "rotulo": "Risco muito elevado", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 4.31, "nota": "Calculado: 173 ÷ 40,1"},
+          {"data": "2024-02-24", "valor": 5.07, "nota": "Calculado: 194 ÷ 38,3"},
+          {"data": "2024-10-16", "valor": 4.95, "nota": "Calculado: 185 ÷ 37,4"},
+          {"data": "2026-06-15", "valor": 5.65}
+        ]
+      },
+      {
+        "id": "castelli-2", "grupo": "Colesterol e triglicerídeos", "nome": "Índice de Castelli II (LDL ÷ HDL)", "unidade": "",
+        "minimo": null, "maximo": 3.64, "referencia": "Homens: risco baixo até 3,64 · médio 3,65 a 6,24 · elevado 6,25 a 7,98",
+        "faixas": [
+          {"ate": 3.65, "rotulo": "Risco baixo", "nivel": "ok"},
+          {"ate": 6.25, "rotulo": "Risco médio", "nivel": "atencao"},
+          {"ate": 7.99, "rotulo": "Risco elevado", "nivel": "risco"},
+          {"ate": null, "rotulo": "Risco muito elevado", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 3.02, "nota": "Calculado: 121 ÷ 40,1"},
+          {"data": "2024-02-24", "valor": 3.81, "nota": "Calculado: 146 ÷ 38,3"},
+          {"data": "2024-10-16", "valor": 3.5, "nota": "Calculado: 131 ÷ 37,4"},
+          {"data": "2026-06-15", "valor": 4.22}
+        ]
+      },
+      {
+        "id": "testosterona-total", "modalidade": "urologia", "grupo": "Hormônios", "nome": "Testosterona total", "unidade": "ng/dL",
+        "minimo": 175, "maximo": 781, "referencia": "Homens adultos: 175 a 781 ng/dL",
+        "valores": [
+          {"data": "2022-11-05", "valor": 527.17}, {"data": "2026-03-19", "valor": 284.22}
+        ],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "sobe", "nota": "Estimula LH e FSH, que aumentam a produção de testosterona"},
+          {"med": "anastrozol", "efeito": "sobe", "nota": "Menos testosterona convertida em estradiol"}
+        ]
+      },
+      {
+        "id": "testosterona-livre", "modalidade": "urologia", "grupo": "Hormônios", "nome": "Testosterona livre", "unidade": "ng/dL",
+        "minimo": 3.4, "maximo": 24.6, "referencia": "Homens de 17 a 40 anos: 3,40 a 24,60 ng/dL",
+        "valores": [{"data": "2026-03-19", "valor": 6.91}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "sobe", "nota": "Acompanha a testosterona total"},
+          {"med": "anastrozol", "efeito": "sobe", "nota": "Menos testosterona convertida em estradiol"}
+        ]
+      },
+      {
+        "id": "testosterona-biodisponivel", "modalidade": "urologia", "grupo": "Hormônios", "nome": "Testosterona biodisponível", "unidade": "ng/dL",
+        "minimo": 82, "maximo": 626, "referencia": "Homens de 17 a 40 anos: 82 a 626 ng/dL",
+        "valores": [{"data": "2026-03-19", "valor": 162.18}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "sobe", "nota": "Acompanha a testosterona total"}
+        ]
+      },
+      {
+        "id": "estradiol", "modalidade": "urologia", "grupo": "Hormônios", "nome": "Estradiol", "unidade": "pg/mL",
+        "minimo": 11.3, "maximo": 43.2, "referencia": "Homens: 11,3 a 43,2 pg/mL",
+        "valores": [{"data": "2026-03-19", "valor": 29.2}],
+        "medicamentos": [
+          {"med": "anastrozol", "efeito": "desce", "nota": "Bloqueia a aromatase, que transforma testosterona em estradiol"},
+          {"med": "clomifeno", "efeito": "sobe", "nota": "Com mais testosterona, o estradiol tende a subir; o anastrozol segura"}
+        ]
+      },
+      {
+        "id": "lh", "modalidade": "urologia", "grupo": "Hormônios", "nome": "LH (hormônio luteinizante)", "unidade": "mUI/mL",
+        "minimo": 1.24, "maximo": 8.62, "referencia": "Homens acima de 20 anos: 1,24 a 8,62 mUI/mL",
+        "valores": [{"data": "2026-03-19", "valor": 1.76}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "sobe", "nota": "É o efeito direto do clomifeno"}
+        ]
+      },
+      {
+        "id": "fsh", "modalidade": "urologia", "grupo": "Hormônios", "nome": "FSH (hormônio folículo-estimulante)", "unidade": "mUI/mL",
+        "minimo": 1.7, "maximo": 19.26, "referencia": "Homens acima de 20 anos: 1,70 a 19,26 mUI/mL",
+        "valores": [{"data": "2026-03-19", "valor": 1.86}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "sobe", "nota": "É o efeito direto do clomifeno"}
+        ]
+      },
+      {
+        "id": "prolactina", "modalidade": "urologia", "grupo": "Hormônios", "nome": "Prolactina", "unidade": "ng/mL",
+        "minimo": 2.6, "maximo": 13.1, "referencia": "Homens: 2,60 a 13,10 ng/mL",
+        "valores": [{"data": "2026-03-19", "valor": 8.94}]
+      },
+      {
+        "id": "shbg", "modalidade": "urologia", "grupo": "Hormônios", "nome": "SHBG (globulina ligadora de hormônios sexuais)", "unidade": "",
+        "minimo": null, "maximo": null, "referencia": "",
+        "valores": [{"data": "2026-03-19", "valor": 22.0}],
+        "observacao": "A página deste exame no PDF é uma imagem: confira a unidade e a referência no laudo"
+      },
+      {
+        "id": "vitamina-d", "grupo": "Vitaminas e ferro", "nome": "Vitamina D (25-hidroxi)", "unidade": "ng/mL",
+        "minimo": 20, "maximo": 60, "referencia": "Deficiência abaixo de 20 · normal 20 a 60 · ideal para grupos de risco 30 a 60 · intoxicação acima de 100 ng/mL",
+        "faixas": [
+          {"ate": 20, "rotulo": "Deficiência", "nivel": "risco"},
+          {"ate": 30, "rotulo": "Normal", "nivel": "ok"},
+          {"ate": 60.01, "rotulo": "Ideal", "nivel": "ok"},
+          {"ate": 100.01, "rotulo": "Acima do usual", "nivel": "atencao"},
+          {"ate": null, "rotulo": "Risco de intoxicação", "nivel": "risco"}
+        ],
+        "valores": [
+          {"data": "2022-11-05", "valor": 22.0}, {"data": "2024-10-16", "valor": 14.9}, {"data": "2026-06-15", "valor": 17.8}
+        ],
+        "medicamentos": [
+          {"med": "vitamina-d-ataque", "efeito": "sobe", "nota": "Dose de ataque para corrigir a deficiência"},
+          {"med": "vitamina-d-manutencao", "efeito": "acompanha", "nota": "Mantém o nível depois do ataque"}
+        ]
+      },
+      {
+        "id": "vitamina-b12", "grupo": "Vitaminas e ferro", "nome": "Vitamina B12", "unidade": "pg/mL",
+        "minimo": 180, "maximo": 914, "referencia": "180 a 914 pg/mL",
+        "valores": [{"data": "2024-10-16", "valor": 410}, {"data": "2026-06-15", "valor": 489}]
+      },
+      {
+        "id": "ferro", "grupo": "Vitaminas e ferro", "nome": "Ferro", "unidade": "µg/dL",
+        "minimo": 70, "maximo": 180, "referencia": "70 a 180 µg/dL",
+        "valores": [{"data": "2024-10-16", "valor": 71.1}, {"data": "2026-06-15", "valor": 82.82}]
+      },
+      {
+        "id": "ferritina", "grupo": "Vitaminas e ferro", "nome": "Ferritina", "unidade": "ng/mL",
+        "minimo": 23.9, "maximo": 336.2, "referencia": "Homens: 23,9 a 336,2 ng/mL",
+        "valores": [{"data": "2024-10-16", "valor": 225.9}, {"data": "2026-06-15", "valor": 248.2}]
+      },
+      {
+        "id": "tgo", "grupo": "Fígado", "nome": "TGO (AST)", "unidade": "U/L",
+        "minimo": null, "maximo": 49.99, "referencia": "Abaixo de 50 U/L",
+        "valores": [{"data": "2022-11-05", "valor": 17}, {"data": "2024-10-16", "valor": 18}, {"data": "2026-06-15", "valor": 18}]
+      },
+      {
+        "id": "tgp", "grupo": "Fígado", "nome": "TGP (ALT)", "unidade": "U/L",
+        "minimo": null, "maximo": 49.99, "referencia": "Abaixo de 50 U/L",
+        "valores": [{"data": "2022-11-05", "valor": 23}, {"data": "2024-10-16", "valor": 26}, {"data": "2026-06-15", "valor": 30}]
+      },
+      {
+        "id": "ggt", "grupo": "Fígado", "nome": "Gama GT (GGT)", "unidade": "U/L",
+        "minimo": null, "maximo": 54.99, "referencia": "Abaixo de 55 U/L",
+        "valores": [{"data": "2022-11-05", "valor": 23}, {"data": "2024-10-16", "valor": 24}, {"data": "2026-06-15", "valor": 24.15}]
+      },
+      {
+        "id": "creatinina", "grupo": "Rins", "nome": "Creatinina", "unidade": "mg/dL",
+        "minimo": 0.84, "maximo": 1.25, "referencia": "0,84 a 1,25 mg/dL (referência nova desde 31/07/2025)",
+        "valores": [
+          {"data": "2024-02-24", "valor": 0.86}, {"data": "2024-10-16", "valor": 0.82}, {"data": "2024-12-02", "valor": 0.78},
+          {"data": "2026-06-15", "valor": 0.98, "nota": "Filtração glomerular (eGFR) acima de 90 mL/min/1,73 m²: normal"}
+        ],
+        "medicamentos": [
+          {"med": "creatina", "efeito": "sobe", "nota": "A creatina aumenta a creatinina do sangue sem indicar problema nos rins; avise o médico"}
+        ]
+      },
+      {
+        "id": "ureia", "grupo": "Rins", "nome": "Ureia", "unidade": "mg/dL",
+        "minimo": 17, "maximo": 43, "referencia": "Adultos: 17 a 43 mg/dL",
+        "valores": [{"data": "2024-10-16", "valor": 42.6}, {"data": "2024-12-02", "valor": 29.2}, {"data": "2026-06-15", "valor": 31.22}],
+        "medicamentos": [
+          {"med": "whey", "efeito": "acompanha", "nota": "Mais proteína na dieta pode subir a ureia"}
+        ]
+      },
+      {
+        "id": "acido-urico", "grupo": "Rins", "nome": "Ácido úrico", "unidade": "mg/dL",
+        "minimo": 3.5, "maximo": 7.2, "referencia": "3,5 a 7,2 mg/dL",
+        "valores": [{"data": "2024-02-24", "valor": 5.1}, {"data": "2024-10-16", "valor": 5.4}, {"data": "2026-06-15", "valor": 5.3}]
+      },
+      {
+        "id": "tsh", "grupo": "Tireoide", "nome": "TSH", "unidade": "µUI/mL",
+        "minimo": 0.34, "maximo": 5.6, "referencia": "Adultos: 0,340 a 5,600 µUI/mL",
+        "valores": [
+          {"data": "2022-11-05", "valor": 0.843}, {"data": "2024-02-24", "valor": 1.348}, {"data": "2024-10-16", "valor": 1.546}, {"data": "2026-06-15", "valor": 1.942}
+        ]
+      },
+      {
+        "id": "t4-livre", "grupo": "Tireoide", "nome": "T4 livre", "unidade": "ng/dL",
+        "minimo": 0.54, "maximo": 1.24, "referencia": "Adultos: 0,54 a 1,24 ng/dL",
+        "valores": [{"data": "2024-10-16", "valor": 0.76}, {"data": "2026-06-15", "valor": 0.72}]
+      },
+      {
+        "id": "hematocrito", "grupo": "Hemograma", "nome": "Hematócrito", "unidade": "%",
+        "minimo": 40, "maximo": 50, "referencia": "40 a 50 %",
+        "valores": [{"data": "2026-06-15", "valor": 45.8}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "acompanha", "nota": "Com a testosterona mais alta, o hematócrito pode subir"}
+        ]
+      },
+      {
+        "id": "hemoglobina", "grupo": "Hemograma", "nome": "Hemoglobina", "unidade": "g/dL",
+        "minimo": 13, "maximo": 17, "referencia": "13 a 17 g/dL",
+        "valores": [{"data": "2026-06-15", "valor": 15.7}],
+        "medicamentos": [
+          {"med": "clomifeno", "efeito": "acompanha", "nota": "Com a testosterona mais alta, a hemoglobina pode subir"}
+        ]
+      },
+      {
+        "id": "hemacias", "grupo": "Hemograma", "nome": "Hemácias", "unidade": "milhões/µL",
+        "minimo": 4.5, "maximo": 5.5, "referencia": "4,50 a 5,50 milhões/µL",
+        "valores": [{"data": "2026-06-15", "valor": 5.19}]
+      },
+      {
+        "id": "vcm", "grupo": "Hemograma", "nome": "VCM", "unidade": "fL",
+        "minimo": 83, "maximo": 101, "referencia": "83 a 101 fL",
+        "valores": [{"data": "2026-06-15", "valor": 88.2}]
+      },
+      {
+        "id": "hcm", "grupo": "Hemograma", "nome": "HCM", "unidade": "pg",
+        "minimo": 27, "maximo": 32, "referencia": "27 a 32 pg",
+        "valores": [{"data": "2026-06-15", "valor": 30.3}]
+      },
+      {
+        "id": "chcm", "grupo": "Hemograma", "nome": "CHCM", "unidade": "g/dL",
+        "minimo": 31.5, "maximo": 34.5, "referencia": "31,5 a 34,5 g/dL",
+        "valores": [{"data": "2026-06-15", "valor": 34.3}]
+      },
+      {
+        "id": "rdw", "grupo": "Hemograma", "nome": "RDW", "unidade": "%",
+        "minimo": 11.6, "maximo": 14, "referencia": "11,6 a 14,0 %",
+        "valores": [{"data": "2026-06-15", "valor": 12.3}]
+      },
+      {
+        "id": "leucocitos", "grupo": "Hemograma", "nome": "Leucócitos", "unidade": "/mm³",
+        "minimo": 4000, "maximo": 10000, "referencia": "4.000 a 10.000 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 4510}]
+      },
+      {
+        "id": "neutrofilos", "grupo": "Hemograma", "nome": "Neutrófilos", "unidade": "/mm³",
+        "minimo": 2000, "maximo": 7000, "referencia": "2.000 a 7.000 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 1488, "nota": "33 % dos leucócitos"}]
+      },
+      {
+        "id": "linfocitos", "grupo": "Hemograma", "nome": "Linfócitos", "unidade": "/mm³",
+        "minimo": 1000, "maximo": 3000, "referencia": "1.000 a 3.000 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 2435, "nota": "54 % dos leucócitos"}]
+      },
+      {
+        "id": "monocitos", "grupo": "Hemograma", "nome": "Monócitos", "unidade": "/mm³",
+        "minimo": 200, "maximo": 1000, "referencia": "200 a 1.000 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 496, "nota": "11 % dos leucócitos"}]
+      },
+      {
+        "id": "eosinofilos", "grupo": "Hemograma", "nome": "Eosinófilos", "unidade": "/mm³",
+        "minimo": 20, "maximo": 500, "referencia": "20 a 500 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 90, "nota": "2 % dos leucócitos"}]
+      },
+      {
+        "id": "basofilos", "grupo": "Hemograma", "nome": "Basófilos", "unidade": "/mm³",
+        "minimo": 20, "maximo": 100, "referencia": "20 a 100 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 0, "nota": "0 % dos leucócitos"}]
+      },
+      {
+        "id": "plaquetas", "grupo": "Hemograma", "nome": "Plaquetas", "unidade": "/mm³",
+        "minimo": 150000, "maximo": 400000, "referencia": "150.000 a 400.000 /mm³",
+        "valores": [{"data": "2026-06-15", "valor": 161000}]
+      },
+      {
+        "id": "vpm", "grupo": "Hemograma", "nome": "VPM (volume plaquetário médio)", "unidade": "fL",
+        "minimo": 7.5, "maximo": 11.2, "referencia": "7,5 a 11,2 fL",
+        "valores": [{"data": "2026-06-15", "valor": 11.4}]
+      },
+      {
+        "id": "pcr", "grupo": "Inflamação", "nome": "Proteína C reativa (PCR)", "unidade": "",
+        "minimo": null, "maximo": null, "referencia": "",
+        "valores": [{"data": "2023-05-05", "valor": 64.4}],
+        "observacao": "Valor do laudo comparativo de 19/03/2026: ele não traz a unidade nem a referência"
+      }
+    ]
+  }
+}

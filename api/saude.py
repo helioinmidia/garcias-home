@@ -61,7 +61,7 @@ TIPOS_ARQUIVO = {"application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "pn
 ID = r"[a-z0-9][a-z0-9-]{0,63}"
 DATA = r"\d{4}-\d{2}-\d{2}"
 ROTA_PESSOA = re.compile(rf"^/pessoa/({ID})$")
-ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias|composicao|procedimentos)/({ID})$")
+ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias|composicao|procedimentos|resultados)/({ID})$")
 ROTA_DOCUMENTO = re.compile(rf"^/pessoa/({ID})/documento/({ID})$")
 ROTA_TOMADA = re.compile(rf"^/pessoa/({ID})/tomada/({DATA})/({ID})$")
 ROTA_PESO = re.compile(rf"^/pessoa/({ID})/peso/({DATA})$")
@@ -218,6 +218,65 @@ def segmentar(nome, valor):
     return saida
 
 
+# Exames de laboratório: um item por indicador (LDL, glicose…), com o histórico de valores.
+def numero_ou_nulo(nome, valor):
+    if valor in (None, ""):
+        return None
+    return numero(-1e9, 1e9, 4)(nome, valor)
+
+
+def valores_lab(nome, valor):
+    """[{"data": "AAAA-MM-DD", "valor": n, "nota": "..."}], um por data, em ordem."""
+    if valor is None:
+        return []
+    if not isinstance(valor, list) or len(valor) > 300:
+        raise ErroPedido(f'"{nome}" deve ser uma lista (até 300 resultados)')
+    por_data = {}
+    for i, r in enumerate(valor):
+        if not isinstance(r, dict):
+            raise ErroPedido(f'"{nome}[{i}]" deve ser um objeto')
+        data = data_ou_vazio(f"{nome}[{i}].data", r.get("data"))
+        if not data:
+            raise ErroPedido(f'"{nome}[{i}].data" é obrigatória')
+        por_data[data] = {"data": data, "valor": numero(-1e9, 1e9, 4)(f"{nome}[{i}].valor", r.get("valor")),
+                          "nota": texto(300)(f"{nome}[{i}].nota", r.get("nota"))}
+    return [por_data[d] for d in sorted(por_data)]
+
+
+def faixas_risco(nome, valor):
+    """Categorias em ordem crescente: [{"ate": n (exclusivo; null na última), "rotulo": "...", "nivel": "ok|atencao|risco"}]."""
+    if valor is None:
+        return []
+    if not isinstance(valor, list) or len(valor) > 8:
+        raise ErroPedido(f'"{nome}" deve ser uma lista (até 8 faixas)')
+    saida = []
+    for i, f in enumerate(valor):
+        if not isinstance(f, dict):
+            raise ErroPedido(f'"{nome}[{i}]" deve ser um objeto')
+        saida.append({"ate": numero_ou_nulo(f"{nome}[{i}].ate", f.get("ate")),
+                      "rotulo": texto(60, True)(f"{nome}[{i}].rotulo", f.get("rotulo")),
+                      "nivel": opcao("ok", "atencao", "risco")(f"{nome}[{i}].nivel", f.get("nivel"))})
+    return saida
+
+
+def vinculos_med(nome, valor):
+    """Medicamentos que mexem no indicador: [{"med": id, "efeito": "sobe|desce|acompanha", "nota": "..."}]."""
+    if valor is None:
+        return []
+    if not isinstance(valor, list) or len(valor) > 20:
+        raise ErroPedido(f'"{nome}" deve ser uma lista')
+    saida = []
+    for i, v in enumerate(valor):
+        if not isinstance(v, dict):
+            raise ErroPedido(f'"{nome}[{i}]" deve ser um objeto')
+        med = id_ou_vazio(f"{nome}[{i}].med", v.get("med"))
+        if not med:
+            raise ErroPedido(f'"{nome}[{i}].med" é obrigatório')
+        saida.append({"med": med, "efeito": opcao("sobe", "desce", "acompanha")(f"{nome}[{i}].efeito", v.get("efeito") or "acompanha"),
+                      "nota": texto(200)(f"{nome}[{i}].nota", v.get("nota"))})
+    return saida
+
+
 ESQUEMAS = {
     "modalidades": {
         "nome": texto(80, True),
@@ -286,6 +345,19 @@ ESQUEMAS = {
         "prazo": data_ou_vazio,
         "feito": booleano,
     },
+    "resultados": {
+        "modalidade": id_ou_vazio,
+        "grupo": texto(80),
+        "nome": texto(120, True),
+        "unidade": texto(40),
+        "minimo": numero_ou_nulo,
+        "maximo": numero_ou_nulo,
+        "referencia": texto(300),
+        "faixas": faixas_risco,
+        "valores": valores_lab,
+        "medicamentos": vinculos_med,
+        "observacao": texto(1000),
+    },
 }
 PADROES = {
     "modalidades": {},
@@ -295,6 +367,7 @@ PADROES = {
     "pendencias": {},
     "composicao": {},
     "procedimentos": {"status": "avaliacao"},
+    "resultados": {},
 }
 CONFIG = {
     "peso": {
@@ -486,6 +559,13 @@ def aplica_atualizacoes():
                     item = valida(ESQUEMAS[colecao], bruto, PADROES[colecao])
                     item["id"] = bruto["id"]
                     doc[colecao].append(item)
+            # Resultados novos de indicadores já cadastrados: só entram nas datas ainda sem valor.
+            # {"id-do-indicador": [{"data": ..., "valor": ..., "nota": ...}]}
+            for rid, novos in atualizacao.get("resultadosValores", {}).items():
+                for res in doc["resultados"]:
+                    if res.get("id") == rid:
+                        datas = {v["data"] for v in res["valores"]}
+                        res["valores"] = valores_lab("valores", res["valores"] + [v for v in novos if v.get("data") not in datas])
             doc["migracoes"].append(uid)
             grava(doc)
             print(f"atualização {uid} aplicada a {pessoa}", file=sys.stderr)
