@@ -1,0 +1,14 @@
+{
+  "id": "2026-10-peso-consulta-08-10",
+  "pessoa": "helio",
+  "descricao": "Dados da consulta de 08/10/2026 (Medicina Esportiva): o peso do InBody vira o ponto de partida do acompanhamento e a bioimpedância entra no resumo da consulta.",
+  "peso": {
+    "2026-10-08": {
+      "kg": 111.4,
+      "nota": "Consulta de 08/10/2026 (InBody 120, QOR Médica, 14:44). Ponto de partida das metas."
+    }
+  },
+  "acrescentarResumo": {
+    "consulta-2026-10-08": "Bioimpedância (InBody 120, QOR Médica, 08/10/2026 14:44): peso 111,4 kg · massa de gordura 31,6 kg (PGC 28,3 %) · massa muscular esquelética 46,0 kg · massa livre de gordura 79,8 kg · IMC 34,0 · gordura visceral nível 13 · relação cintura-quadril 0,96 · taxa metabólica basal 2.094 kcal · pontuação 81/100. Peso ideal 93,9 kg; controle de gordura −17,5 kg; controle muscular 0,0 kg. Metas a partir de 111,4 kg: mínima 109,4 kg (−2 kg) e ideal 106,4 kg (−5 kg)."
+  }
+}

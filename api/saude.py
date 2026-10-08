@@ -8,7 +8,9 @@ cada dia. Cada item aponta para uma modalidade ("modalidade": id). Na primeira v
 api/saude-inicial/<id>.json; depois disso só a API grava (os dados ficam no Pi, fora do git).
 
 Atualizações: cada arquivo em api/saude-inicial/atualizacoes/*.json é aplicado uma única vez a cada
-pessoa (fica anotado em "migracoes"), sem apagar nada do que foi registrado na tela.
+pessoa (fica anotado em "migracoes"), sem apagar nada do que foi registrado na tela. Uma atualização
+pode criar modalidades, acrescentar itens, lançar pesagens em datas ainda vazias e completar o resumo
+de uma consulta.
 
   GET    /status                                   -> {"ok": true}
   GET    /pessoas                                  -> {"pessoas": [{id, nome}]}
@@ -374,6 +376,16 @@ def aplica_atualizacoes():
                         doc[chave]["modalidade"] = padrao
                 if doc.get("plano") and not doc["plano"].get("modalidade"):
                     doc["plano"]["modalidade"] = padrao
+            # Pesagens: entram só nas datas ainda sem registro (nunca sobrescrevem o que foi lançado na tela).
+            for data, reg in atualizacao.get("peso", {}).items():
+                data_ou_vazio("peso", data)
+                if data not in doc["peso"]["registros"]:
+                    doc["peso"]["registros"][data] = {"kg": numero(20, 400)("kg", reg.get("kg")), "nota": texto(300)("nota", reg.get("nota"))}
+            # Texto acrescentado ao resumo de uma consulta existente (uma vez; não repete se já estiver lá).
+            for cid, extra in atualizacao.get("acrescentarResumo", {}).items():
+                for consulta in doc["consultas"]:
+                    if consulta.get("id") == cid and extra.strip() not in (consulta.get("resumo") or ""):
+                        consulta["resumo"] = ((consulta.get("resumo") or "").rstrip() + "\n\n" + extra.strip()).strip()[:6000]
             for colecao, itens in atualizacao.get("itens", {}).items():
                 existentes = {i.get("id") for i in doc[colecao]}
                 for bruto in itens:
