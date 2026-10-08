@@ -16,7 +16,8 @@
   var pessoaId = null;
   var doc = null; // documento da pessoa na tela
   var geracao = 0;
-  var filtro = 'todas'; // modalidade escolhida na barra de filtro (ou 'todas')
+  var filtro = 'todas';
+  var aba = 'geral'; // 'geral' (acompanhamento) ou 'bioimpedancia' // modalidade escolhida na barra de filtro (ou 'todas')
 
   // ---------- utilidades ----------
   function $(id) { return document.getElementById(id); }
@@ -153,28 +154,45 @@
     var mostraPeso = doc.peso.ativo && passaOuSem(doc.peso);
     var mostraPlano = doc.plano && passaOuSem(doc.plano);
     var secoes = [['hoje-sec', 'Hoje'], ['prox-sec', 'Próximas consultas'], ['mod-sec', 'Modalidades']];
-    var mostraComp = (doc.composicao || []).some(passa);
     if (mostraPeso) secoes.push(['peso-sec', 'Peso']);
-    if (mostraComp) secoes.push(['comp-sec', 'Composição corporal']);
     secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências'], ['docs-sec', 'Documentos']);
     if (mostraPlano) secoes.push(['plano-sec', 'Plano alimentar']);
+    // Abas: Acompanhamento (o dia a dia) e Bioimpedância (composição corporal, à parte para não poluir).
     var nav = $('secoes');
     nav.textContent = '';
-    secoes.forEach(function (s) { add(nav, h('a', { href: '#' + pessoaId + '/' + s[0] }, s[1])); });
+    var nAval = (doc.composicao || []).length;
+    add(nav, h('div', { class: 'abas', role: 'tablist' },
+      [['geral', 'Acompanhamento', null], ['bioimpedancia', 'Bioimpedância', nAval || null]].map(function (t) {
+        return h('button', { type: 'button', role: 'tab', class: 'aba', 'aria-selected': String(aba === t[0]), onclick: function () { trocaAba(t[0]); } },
+          t[1], t[2] ? h('span', { class: 'aba-n' }, t[2]) : null);
+      })));
+    if (aba === 'geral') secoes.forEach(function (s) { add(nav, h('a', { href: '#' + pessoaId + '/' + s[0] }, s[1])); });
 
     var pag = $('pagina');
     var rolagem = window.pageYOffset;
     pag.textContent = '';
+    if (aba === 'bioimpedancia') {
+      add(pag, barraFiltro(), cartaoComposicao());
+      window.scrollTo(0, rolagem);
+      return;
+    }
     add(pag,
       barraFiltro(),
       h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), cartaoModalidades())),
       mostraPeso ? cartaoPeso() : null,
-      mostraComp ? cartaoComposicao() : null,
       h('div', { class: 'grade' }, cartaoMedicamentos(), cartaoExames()),
       h('div', { class: 'grade' }, cartaoConsultas(), h('div', { class: 'coluna' }, cartaoPendencias(), cartaoDocumentos())),
       mostraPlano ? cartaoPlano() : null
     );
     window.scrollTo(0, rolagem);
+  }
+
+  function trocaAba(nova) {
+    if (nova === aba) return;
+    aba = nova;
+    history.replaceState(null, '', '#' + pessoaId + (aba === 'bioimpedancia' ? '/bioimpedancia' : ''));
+    desenha();
+    window.scrollTo(0, 0);
   }
 
   // Barra de filtro: Todas · Medicina Esportiva · Urologia… (só aparece com duas modalidades ou mais).
@@ -482,6 +500,11 @@
 
   function cartaoComposicao() {
     var lista = (doc.composicao || []).filter(passa).slice().sort(function (a, b) { return ((a.data || '') + (a.hora || '')) < ((b.data || '') + (b.hora || '')) ? -1 : 1; });
+    if (!lista.length) {
+      return add(cartao('comp-sec', 'comp-titulo'), cabecalho('Composição corporal', 'comp-titulo',
+        h('button', { type: 'button', class: 'btn', onclick: function () { editaAvaliacao(null, null); } }, 'Nova avaliação')),
+        h('p', { class: 'vazio' }, 'Nenhuma avaliação de bioimpedância' + nomeFiltro() + '. Lance os números do laudo (InBody ou outro aparelho) em "Nova avaliação".'));
+    }
     var a = lista.filter(function (x) { return x.id === avaliacaoVista; })[0] || lista[lista.length - 1];
     var anterior = lista[lista.indexOf(a) - 1] || null;
     var c = add(cartao('comp-sec', 'comp-titulo'), cabecalho('Composição corporal', 'comp-titulo',
@@ -967,7 +990,7 @@
     doc = null;
     filtro = 'todas';
     try { localStorage.setItem('saude.pessoa', id); } catch (e) { /* só conveniência */ }
-    if (location.hash.split('/')[0] !== '#' + id) history.replaceState(null, '', '#' + id);
+    if (location.hash.split('/')[0] !== '#' + id) history.replaceState(null, '', '#' + id + (aba === 'bioimpedancia' ? '/bioimpedancia' : ''));
     desenhaPessoas();
     $('pagina').textContent = '';
     $('pagina').append(h('p', { class: 'vazio' }, 'Carregando…'));
@@ -977,7 +1000,9 @@
   }
   function vaiParaSecao() {
     var partes = location.hash.slice(1).split('/');
-    if (partes[1]) { var alvo = $(partes[1]); if (alvo) alvo.scrollIntoView({ behavior: 'smooth' }); }
+    var nova = partes[1] === 'bioimpedancia' || partes[1] === 'comp-sec' ? 'bioimpedancia' : 'geral';
+    if (nova !== aba) { aba = nova; desenha(); window.scrollTo(0, 0); }
+    if (partes[1] && aba === 'geral') { var alvo = $(partes[1]); if (alvo) alvo.scrollIntoView({ behavior: 'smooth' }); }
   }
 
   var versoes = {};
