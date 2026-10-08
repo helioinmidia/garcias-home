@@ -192,7 +192,8 @@
       ['consultas', 'Consultas', cartaoConsultas, true, false, 0, true],
       ['procedimentos', 'Procedimentos', cartaoProcedimentos, (doc.procedimentos || []).length > 0, false, 0, true],
       ['peso', 'Peso', cartaoPeso, !!doc.peso.ativo, true, 0, false],
-      ['bioimpedancia', 'Bioimpedância', cartaoComposicao, true, true, 0, true],
+      // Bioimpedância é da Medicina Esportiva: sem barra de modalidades.
+      ['bioimpedancia', 'Bioimpedância', cartaoComposicao, true, true, 0, false],
       ['plano', 'Plano alimentar', cartaoPlano, !!doc.plano, true, 0, false],
       ['documentos', 'Documentos', cartaoDocumentos, true, false, 0, true],
       ['modalidades', 'Modalidades', cartaoModalidades, true, false, 0, false],
@@ -566,11 +567,11 @@
   var avaliacaoVista = null; // id da avaliação escolhida no cartão
 
   function cartaoComposicao() {
-    var lista = (doc.composicao || []).filter(passa).slice().sort(function (a, b) { return ((a.data || '') + (a.hora || '')) < ((b.data || '') + (b.hora || '')) ? -1 : 1; });
+    var lista = (doc.composicao || []).slice().sort(function (a, b) { return ((a.data || '') + (a.hora || '')) < ((b.data || '') + (b.hora || '')) ? -1 : 1; });
     if (!lista.length) {
       return add(cartao('comp-sec', 'comp-titulo'), cabecalho('Composição corporal', 'comp-titulo',
         h('button', { type: 'button', class: 'btn', onclick: function () { editaAvaliacao(null, null); } }, 'Nova avaliação')),
-        h('p', { class: 'vazio' }, 'Nenhuma avaliação de bioimpedância' + nomeFiltro() + '. Lance os números do laudo (InBody ou outro aparelho) em "Nova avaliação".'));
+        h('p', { class: 'vazio' }, 'Nenhuma avaliação de bioimpedância. Lance os números do laudo (InBody ou outro aparelho) em "Nova avaliação".'));
     }
     var a = lista.filter(function (x) { return x.id === avaliacaoVista; })[0] || lista[lista.length - 1];
     var anterior = lista[lista.indexOf(a) - 1] || null;
@@ -586,7 +587,7 @@
     }
     add(c, h('div', { class: 'comp-topo' },
       h('div', null,
-        h('div', { class: 'item-titulo' }, [a.aparelho || 'Avaliação', a.data ? dataCurta(a.data) + (a.hora ? ' ' + a.hora : '') : ''].filter(Boolean).join(' · '), chipMod(a.modalidade)),
+        h('div', { class: 'item-titulo' }, [a.aparelho || 'Avaliação', a.data ? dataCurta(a.data) + (a.hora ? ' ' + a.hora : '') : ''].filter(Boolean).join(' · ')),
         a.local ? h('div', { class: 'item-linha' }, a.local) : null),
       escolha,
       h('button', { type: 'button', class: 'btn mini', onclick: function () { editaAvaliacao(a); } }, 'Editar')));
@@ -681,10 +682,9 @@
   // Avaliação nova (faixas e aparelho copiados da anterior) ou edição das medidas de uma existente.
   function editaAvaliacao(item, modelo) {
     var base = item || { data: hoje(), hora: '', aparelho: (modelo && modelo.aparelho) || '', local: (modelo && modelo.local) || '',
-      modalidade: filtro !== 'todas' ? filtro : (modelo && modelo.modalidade) || '', medidas: {}, faixas: (modelo && modelo.faixas) || {}, segmentar: {}, observacao: '' };
+      modalidade: (modelo && modelo.modalidade) || (modalidade('medicina-esportiva') ? 'medicina-esportiva' : ''), medidas: {}, faixas: (modelo && modelo.faixas) || {}, segmentar: {}, observacao: '' };
     var valores = Object.assign({}, base, base.medidas);
     var campos = [
-      ['modalidade', 'Modalidade', 'modalidade'],
       ['data', 'Data', 'data', { par: true }], ['hora', 'Hora', 'hora', { par: true }],
       ['aparelho', 'Aparelho', 'texto', { par: true, dica: 'Ex.: InBody 120' }], ['local', 'Local', 'texto', { par: true }],
     ];
@@ -693,7 +693,7 @@
     abreDialogo(item ? 'Editar avaliação' : 'Nova avaliação de composição corporal', campos, valores, function (dados) {
       var med = {};
       METRICAS.concat(EXTRAS).forEach(function (d) { if (dados[d[0]] != null) med[d[0]] = dados[d[0]]; });
-      var corpo = { modalidade: dados.modalidade, data: dados.data, hora: dados.hora, aparelho: dados.aparelho, local: dados.local,
+      var corpo = { modalidade: base.modalidade || '', data: dados.data, hora: dados.hora, aparelho: dados.aparelho, local: dados.local,
         medidas: med, faixas: base.faixas || {}, segmentar: base.segmentar || {}, observacao: dados.observacao };
       var id = item ? item.id : novoId('avaliacao-' + (dados.data || hoje()));
       avaliacaoVista = id;
