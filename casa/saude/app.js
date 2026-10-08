@@ -17,7 +17,7 @@
   var doc = null; // documento da pessoa na tela
   var geracao = 0;
   var filtro = 'todas';
-  var aba = 'geral'; // 'geral' (acompanhamento) ou 'bioimpedancia' // modalidade escolhida na barra de filtro (ou 'todas')
+  var vista = 'hoje'; // seção na tela: cada uma mostra só o seu conteúdo // modalidade escolhida na barra de filtro (ou 'todas')
 
   // ---------- utilidades ----------
   function $(id) { return document.getElementById(id); }
@@ -177,52 +177,57 @@
     });
   }
 
+  // Seções: cada uma é uma tela com um só cartão. [id, nome, desenho, aparece?, larga?, contador, usa filtro?]
+  function vistas() {
+    var k = hoje();
+    var aTomar = doc.medicamentos.filter(function (m) { return tomaEm(m, k) && !tomou(m, k); }).length;
+    var pend = doc.pendencias.filter(function (x) { return passa(x) && !x.feito; }).length;
+    var exames = doc.exames.filter(function (x) { return passa(x) && x.status !== 'feito'; }).length;
+    return [
+      ['hoje', 'Hoje', cartaoHoje, true, false, aTomar, false],
+      ['proximas', 'Próximas consultas', cartaoConsulta, true, false, 0, true],
+      ['medicamentos', 'Medicamentos', cartaoMedicamentos, true, false, 0, true],
+      ['pendencias', 'Pendências', cartaoPendencias, true, false, pend, true],
+      ['exames', 'Exames', cartaoExames, true, false, exames, true],
+      ['consultas', 'Consultas', cartaoConsultas, true, false, 0, true],
+      ['procedimentos', 'Procedimentos', cartaoProcedimentos, (doc.procedimentos || []).length > 0, false, 0, true],
+      ['peso', 'Peso', cartaoPeso, !!doc.peso.ativo, true, 0, false],
+      ['bioimpedancia', 'Bioimpedância', cartaoComposicao, true, true, 0, true],
+      ['plano', 'Plano alimentar', cartaoPlano, !!doc.plano, true, 0, false],
+      ['documentos', 'Documentos', cartaoDocumentos, true, false, 0, true],
+      ['modalidades', 'Modalidades', cartaoModalidades, true, false, 0, false],
+    ].filter(function (v) { return v[3]; });
+  }
+
   function desenha() {
     if (!doc) return;
     if (filtro !== 'todas' && !modalidade(filtro)) filtro = 'todas';
-    var mostraPeso = doc.peso.ativo && passaOuSem(doc.peso);
-    var mostraPlano = doc.plano && passaOuSem(doc.plano);
-    var temProc = (doc.procedimentos || []).some(passa);
-    var secoes = [['hoje-sec', 'Hoje'], ['prox-sec', 'Próximas consultas']];
-    if (temProc) secoes.push(['proc-sec', 'Procedimentos']);
-    secoes.push(['mod-sec', 'Modalidades']);
-    if (mostraPeso) secoes.push(['peso-sec', 'Peso']);
-    secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências'], ['docs-sec', 'Documentos']);
-    if (mostraPlano) secoes.push(['plano-sec', 'Plano alimentar']);
-    // Abas: Acompanhamento (o dia a dia) e Bioimpedância (composição corporal, à parte para não poluir).
+    var lista = vistas();
+    var atual = lista.filter(function (v) { return v[0] === vista; })[0];
+    if (!atual) { vista = 'hoje'; atual = lista[0]; }
     var nav = $('secoes');
     nav.textContent = '';
-    var nAval = (doc.composicao || []).length;
-    add(nav, h('div', { class: 'abas', role: 'tablist' },
-      [['geral', 'Acompanhamento', null], ['bioimpedancia', 'Bioimpedância', nAval || null]].map(function (t) {
-        return h('button', { type: 'button', role: 'tab', class: 'aba', 'aria-selected': String(aba === t[0]), onclick: function () { trocaAba(t[0]); } },
-          t[1], t[2] ? h('span', { class: 'aba-n' }, t[2]) : null);
-      })));
-    if (aba === 'geral') secoes.forEach(function (s) { add(nav, h('a', { href: '#' + pessoaId + '/' + s[0] }, s[1])); });
-
+    lista.forEach(function (v) {
+      add(nav, h('button', { type: 'button', role: 'tab', class: 'aba', 'aria-selected': String(v[0] === vista), onclick: function () { trocaVista(v[0]); } },
+        v[1], v[5] ? h('span', { class: 'aba-n' }, v[5]) : null));
+    });
+    // Mantém a seção escolhida visível no menu (só rolagem horizontal do menu, nunca da página).
+    var sel = nav.querySelector('[aria-selected="true"]');
+    if (sel && (sel.offsetLeft < nav.scrollLeft || sel.offsetLeft + sel.offsetWidth > nav.scrollLeft + nav.clientWidth)) {
+      nav.scrollLeft = sel.offsetLeft - 16;
+    }
     var pag = $('pagina');
     var rolagem = window.pageYOffset;
     pag.textContent = '';
-    if (aba === 'bioimpedancia') {
-      add(pag, barraFiltro(), cartaoComposicao());
-      window.scrollTo(0, rolagem);
-      return;
-    }
-    add(pag,
-      barraFiltro(),
-      h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), temProc ? cartaoProcedimentos() : null, cartaoModalidades())),
-      mostraPeso ? cartaoPeso() : null,
-      h('div', { class: 'grade' }, cartaoMedicamentos(), cartaoExames()),
-      h('div', { class: 'grade' }, cartaoConsultas(), h('div', { class: 'coluna' }, cartaoPendencias(), cartaoDocumentos())),
-      mostraPlano ? cartaoPlano() : null
-    );
+    pag.className = atual[4] ? 'larga' : 'estreita';
+    add(pag, atual[6] ? barraFiltro() : null, atual[2]());
     window.scrollTo(0, rolagem);
   }
 
-  function trocaAba(nova) {
-    if (nova === aba) return;
-    aba = nova;
-    history.replaceState(null, '', '#' + pessoaId + (aba === 'bioimpedancia' ? '/bioimpedancia' : ''));
+  function trocaVista(nova) {
+    if (nova === vista) return;
+    vista = nova;
+    history.replaceState(null, '', '#' + pessoaId + '/' + vista);
     desenha();
     window.scrollTo(0, 0);
   }
@@ -302,7 +307,7 @@
     }
     if (doc.peso.ativo && passaOuSem(doc.peso) && (doc.peso.dias || []).indexOf(new Date().getDay()) >= 0 && !(doc.peso.registros || {})[k]) {
       add(c, h('div', { class: 'alerta' }, h('b', null, 'Dia de pesagem. '), doc.peso.instrucoes || '', ' ',
-        h('a', { href: '#' + pessoaId + '/peso-sec' }, 'Registrar o peso')));
+        h('a', { href: '#' + pessoaId + '/peso' }, 'Registrar o peso')));
     }
     if (doc.proteina.ativo && passaOuSem(doc.proteina)) add(c, blocoProteina());
     return c;
@@ -771,7 +776,9 @@
   function cartaoProcedimentos() {
     var c = add(cartao('proc-sec', 'proc-titulo'), cabecalho('Procedimentos', 'proc-titulo', botaoAdd('procedimentos', 'Adicionar')));
     var k = hoje();
-    (doc.procedimentos || []).filter(passa).forEach(function (p) {
+    var procs = (doc.procedimentos || []).filter(passa);
+    if (!procs.length) add(c, h('p', { class: 'vazio' }, 'Nenhum procedimento' + nomeFiltro() + '.'));
+    procs.forEach(function (p) {
       var st = STATUS_PROC[p.status] || STATUS_PROC.avaliacao;
       var idx = ETAPAS.map(function (e) { return e[0]; }).indexOf(p.status);
       var bloco = h('div', { class: 'proc', style: modalidade(p.modalidade) ? '--mod:' + corMod(p.modalidade) : null });
@@ -1133,7 +1140,7 @@
     doc = null;
     filtro = 'todas';
     try { localStorage.setItem('saude.pessoa', id); } catch (e) { /* só conveniência */ }
-    if (location.hash.split('/')[0] !== '#' + id) history.replaceState(null, '', '#' + id + (aba === 'bioimpedancia' ? '/bioimpedancia' : ''));
+    if (location.hash.split('/')[0] !== '#' + id) history.replaceState(null, '', '#' + id + '/' + vista);
     desenhaPessoas();
     $('pagina').textContent = '';
     $('pagina').append(h('p', { class: 'vazio' }, 'Carregando…'));
@@ -1141,11 +1148,13 @@
     pede('GET', '/pessoa/' + id).then(function (novo) { if (id === pessoaId) { doc = novo; desenha(); vaiParaSecao(); } })
       .catch(function (e) { $('pagina').textContent = ''; $('pagina').append(h('p', { class: 'vazio' }, 'Não consegui carregar: ' + e.message)); });
   }
+  var IDS_ANTIGOS = { 'hoje-sec': 'hoje', 'prox-sec': 'proximas', 'proc-sec': 'procedimentos', 'mod-sec': 'modalidades', 'peso-sec': 'peso',
+    'meds-sec': 'medicamentos', 'exames-sec': 'exames', 'consultas-sec': 'consultas', 'pend-sec': 'pendencias', 'docs-sec': 'documentos',
+    'plano-sec': 'plano', 'comp-sec': 'bioimpedancia' };
   function vaiParaSecao() {
-    var partes = location.hash.slice(1).split('/');
-    var nova = partes[1] === 'bioimpedancia' || partes[1] === 'comp-sec' ? 'bioimpedancia' : 'geral';
-    if (nova !== aba) { aba = nova; desenha(); window.scrollTo(0, 0); }
-    if (partes[1] && aba === 'geral') { var alvo = $(partes[1]); if (alvo) alvo.scrollIntoView({ behavior: 'smooth' }); }
+    var pedida = location.hash.slice(1).split('/')[1] || 'hoje';
+    pedida = IDS_ANTIGOS[pedida] || pedida;
+    if (pedida !== vista) { vista = pedida; desenha(); window.scrollTo(0, 0); }
   }
 
   var versoes = {};

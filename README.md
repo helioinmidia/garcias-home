@@ -164,7 +164,9 @@ pendências e documentos pertencem a uma modalidade. Com duas modalidades ou mai
 filtro (Todas · Medicina Esportiva · Urologia). O cartão Hoje mostra sempre tudo o que há para tomar no
 dia, com a modalidade de cada item.
 
-Cada aba tem:
+Cada seção é uma tela própria, escolhida no menu do cabeçalho, com só o seu cartão; o endereço muda
+junto (`#helio/medicamentos`, `#helio/pendencias`…) e pode ser salvo como favorito. Hoje, Pendências e
+Exames mostram no menu quantos itens estão em aberto. As seções:
 
 - **Hoje:** os medicamentos e suplementos do dia, cada um com o botão de tomado, os últimos 7 dias e o
   contador de doses (tomadas de previstas no período, e as esquecidas). Os "quando necessário" também.
@@ -181,7 +183,7 @@ Cada aba tem:
 - **Medicamentos, exames, consultas e pendências:** cada item pode ser adicionado, editado e apagado.
   Um medicamento tem período (início e fim), frequência (todos os dias, dias da semana, quando
   necessário ou a definir) e dose. A consulta guarda o resumo e as condutas.
-- **Aba Bioimpedância** (`#<pessoa>/bioimpedancia`), separada do acompanhamento do dia a dia: avaliações de
+- **Bioimpedância:** avaliações de
   composição corporal (InBody), com cada medida numa barra contra a faixa
   de referência do próprio laudo, os números de controle (peso ideal, controle de gordura e muscular), a
   distribuição por segmento e a evolução entre avaliações. "Nova avaliação" copia aparelho, local e faixas
