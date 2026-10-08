@@ -36,6 +36,24 @@ services:
       - BIND=127.0.0.1
       - TZ=America/Sao_Paulo
 
+  # API do acompanhamento médico: um arquivo por pessoa em dados/saude/ (nasce de api/saude-inicial/).
+  saude-api:
+    image: python:3.12-alpine
+    container_name: garcias-home-saude
+    restart: unless-stopped
+    network_mode: host
+    user: "${CASA_UID:-1000}:${CASA_GID:-1000}"
+    command: ["python", "/app/saude.py"]
+    volumes:
+      - ./api:/app:ro
+      - ./dados:/dados
+    environment:
+      - DADOS_DIR=/dados/saude
+      - INICIAL_DIR=/app/saude-inicial
+      - PORT=8082
+      - BIND=127.0.0.1
+      - TZ=America/Sao_Paulo
+
 volumes:
   caddy-data:
   caddy-config:

@@ -1,0 +1,185 @@
+/* Acompanhamento Médico (casa.blizzard.net/saude). Mesma base do portal da casa, com acento verde-petróleo. */
+:root {
+  --bg: #f7f4ee; --card: #ffffff; --line: #e6dfd2; --soft: #f3efe7; --text: #2b2a28; --muted: #6e6963;
+  --accent: #2e6f7e; --accent-soft: #e3f0f2; --ok: #2e7a3d; --ok-soft: #e4f2e7; --warn: #a3620b; --warn-soft: #fbf0dc;
+  --bad: #b03a2e; --bad-soft: #fbe7e4; --meta: #7a5ba8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1816; --card: #24211e; --line: #37322c; --soft: #2c2824; --text: #f1ece4; --muted: #a9a198;
+    --accent: #7cc3cf; --accent-soft: #1f3438; --ok: #7fcf8c; --ok-soft: #1f3324; --warn: #e5b05a; --warn-soft: #3a2e1a;
+    --bad: #ef8a7d; --bad-soft: #3d2420; --meta: #b9a0e3;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+
+/* Cabeçalho: título, data e as pessoas. */
+.topo { position: sticky; top: 0; z-index: 10; background: var(--bg); background: color-mix(in srgb, var(--bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.topo-in { max-width: 1120px; margin: 0 auto; padding: 16px 16px 0; }
+.titulo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.eyebrow { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 0; font-size: 28px; letter-spacing: -0.01em; }
+.pessoas { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; scrollbar-width: none; }
+.pessoas button {
+  flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 16px;
+  font-weight: 700; cursor: pointer; min-height: 40px;
+}
+.pessoas button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.secoes { display: flex; gap: 4px; overflow-x: auto; padding: 0 0 10px; scrollbar-width: none; }
+.secoes a { flex: none; padding: 4px 10px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.secoes a:hover { background: var(--soft); color: var(--text); }
+
+main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 64px; display: flex; flex-direction: column; gap: 20px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; align-items: start; }
+.cartao { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; scroll-margin-top: 150px; min-width: 0; }
+.cartao > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.cartao h2 { margin: 0; font-size: 19px; }
+.cartao h3 { margin: 16px 0 6px; font-size: 15px; }
+.vazio { margin: 0; color: var(--muted); font-size: 15px; }
+.mudo { color: var(--muted); font-size: 14px; }
+.btn {
+  border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 6px 12px; min-height: 36px;
+  font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primario { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn.perigo { color: var(--bad); }
+.btn.mini { min-height: 30px; padding: 3px 9px; font-size: 13px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.aviso { background: var(--warn-soft); color: var(--warn); }
+.chip.ruim { background: var(--bad-soft); color: var(--bad); }
+.chip.info { background: var(--accent-soft); color: var(--accent); }
+
+/* Listas. */
+.lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lista > li { padding: 12px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: start; }
+.lista > li:first-child { border-top: none; padding-top: 2px; }
+.item-titulo { font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.item-linha { font-size: 14px; color: var(--muted); }
+.item-obs { font-size: 14px; margin-top: 2px; white-space: pre-wrap; }
+.acoes { display: flex; gap: 6px; }
+
+/* Hoje: tomadas, pesagem e proteína. */
+.tomada { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.tomada:first-of-type { border-top: none; }
+.tomada .txt { flex: 1; min-width: 0; }
+.check {
+  flex: none; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--line); background: var(--card);
+  display: grid; place-items: center; cursor: pointer;
+}
+.check svg { width: 22px; height: 22px; stroke: #fff; opacity: 0; }
+.check[aria-checked="true"] { background: var(--ok); border-color: var(--ok); }
+.check[aria-checked="true"] svg { opacity: 1; }
+.feito .nome { color: var(--ok); }
+.dias7 { display: flex; gap: 3px; margin-top: 4px; }
+.dias7 i { width: 14px; height: 6px; border-radius: 3px; background: var(--line); }
+.dias7 i.sim { background: var(--ok); }
+.dias7 i.fora { background: transparent; border: 1px dashed var(--line); }
+
+.barra { height: 12px; border-radius: 999px; background: var(--soft); overflow: hidden; }
+.barra i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.4s; }
+.barra.ok i { background: var(--ok); }
+.prot-num { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.prot-num b { font-size: 30px; line-height: 1; }
+.botoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.prot-semana { display: flex; gap: 6px; align-items: flex-end; height: 56px; margin-top: 12px; }
+.prot-semana div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--muted); }
+.prot-semana span { width: 100%; max-width: 28px; border-radius: 4px 4px 0 0; background: var(--accent-soft); min-height: 2px; }
+.prot-semana span.ok { background: var(--ok); }
+.alerta { padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--text); font-size: 15px; margin-top: 12px; }
+.alerta b { color: var(--warn); }
+
+/* Consulta em destaque. */
+.contagem { font-size: 34px; font-weight: 800; line-height: 1.1; }
+.contagem small { font-size: 16px; font-weight: 600; color: var(--muted); }
+
+/* Peso. */
+.peso-topo { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.num { background: var(--soft); border-radius: 12px; padding: 10px 12px; }
+.num small { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.num b { font-size: 22px; }
+.grafico { width: 100%; height: auto; display: block; }
+.grafico .eixo { stroke: var(--line); stroke-width: 1; }
+.grafico .linha { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.grafico .ponto { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.grafico .meta-min { stroke: var(--warn); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.grafico .meta-ideal { stroke: var(--ok); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.grafico .hoje { stroke: var(--muted); stroke-dasharray: 2 3; stroke-width: 1; }
+.grafico text { font-size: 11px; fill: var(--muted); font-family: inherit; }
+.form-linha { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; margin-top: 12px; }
+.form-linha label { display: flex; flex-direction: column; gap: 2px; font-size: 13px; font-weight: 700; color: var(--muted); }
+input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
+  border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 7px 10px; min-height: 38px; width: 100%;
+}
+.form-linha input { width: auto; }
+.form-linha input.kg { width: 110px; }
+.form-linha input.nota { width: 220px; max-width: 100%; }
+textarea { min-height: 90px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+
+/* Pendências. */
+.pend { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); }
+.pend:first-child { border-top: none; }
+.pend input[type="checkbox"] { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--ok); flex: none; }
+.pend .txt { flex: 1; }
+.pend.feito .txt span:first-child { text-decoration: line-through; color: var(--muted); }
+
+/* Plano alimentar. */
+.plano-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
+.refeicao { background: var(--soft); border-radius: 14px; padding: 14px 16px; }
+.refeicao h3 { margin: 0 0 2px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+.refeicao .nota { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.refeicao ul { margin: 6px 0 0; padding-left: 18px; font-size: 15px; }
+.refeicao li { margin: 3px 0; }
+.prato { display: flex; height: 26px; border-radius: 8px; overflow: hidden; margin: 8px 0 4px; font-size: 12px; font-weight: 700; color: #fff; }
+.prato span { display: grid; place-items: center; }
+.objetivo { margin: 0; padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0; }
+
+/* Consultas. */
+details.resumo { margin-top: 4px; }
+details.resumo summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--accent); }
+details.resumo div { white-space: pre-wrap; font-size: 14px; margin-top: 6px; padding: 10px 12px; background: var(--soft); border-radius: 10px; }
+
+/* Diálogo de edição. */
+dialog { border: 1px solid var(--line); border-radius: 18px; padding: 0; width: min(560px, calc(100% - 24px)); background: var(--card); color: var(--text); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
+dialog form { padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; }
+dialog h2 { margin: 0; font-size: 20px; }
+.campo { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 700; }
+.campo small { font-weight: 500; color: var(--muted); }
+.campo-check { flex-direction: row; align-items: center; gap: 8px; }
+.campo-check input { width: 20px; height: 20px; }
+.dias-semana { display: flex; flex-wrap: wrap; gap: 6px; }
+.dias-semana label { display: flex; align-items: center; gap: 4px; font-weight: 600; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; }
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dialogo-acoes { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.erro-form { color: var(--bad); font-size: 14px; font-weight: 700; margin: 0; }
+
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px);
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; }
+.rodape { max-width: 1120px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 560px) {
+  /* No celular o cabeçalho rola junto com a página: fixo, ele tomaria um terço da tela. */
+  .topo { position: static; }
+  .topo-in { padding-top: 12px; }
+  .cartao { scroll-margin-top: 12px; }
+  h1 { font-size: 22px; }
+  .cartao { padding: 16px; }
+  .duas { grid-template-columns: 1fr; }
+  .grade { grid-template-columns: 1fr; }
+}
+@media print {
+  .topo { position: static; }
+  .btn, .acoes, .botoes, .form-linha, .pessoas, .secoes { display: none !important; }
+}

@@ -19,6 +19,10 @@ http://casa.blizzard.net, :80 {
 	handle_path /rotina/api/* {
 		reverse_proxy 127.0.0.1:8081
 	}
+	# API do acompanhamento médico (api/saude.py): medicamentos, exames, consultas, peso, gravados no Pi.
+	handle_path /saude/api/* {
+		reverse_proxy 127.0.0.1:8082
+	}
 	handle {
 		root * /srv/casa
 		file_server {

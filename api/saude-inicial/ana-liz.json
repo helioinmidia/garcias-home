@@ -1,0 +1,27 @@
+{
+  "id": "ana-liz",
+  "nome": "Ana Liz",
+  "ordem": 1,
+  "medicamentos": [],
+  "exames": [],
+  "consultas": [],
+  "pendencias": [],
+  "peso": {
+    "ativo": false,
+    "dias": [],
+    "instrucoes": "",
+    "inicio": "",
+    "prazo": "",
+    "metaMinimaKg": 0,
+    "metaIdealKg": 0,
+    "registros": {}
+  },
+  "proteina": {
+    "ativo": false,
+    "metaG": 0,
+    "dias": {}
+  },
+  "tomadas": {},
+  "plano": null,
+  "revisao": 0
+}

@@ -1,0 +1,263 @@
+{
+  "id": "helio",
+  "nome": "Helio Garcias",
+  "ordem": 3,
+  "medicamentos": [
+    {
+      "id": "ibp",
+      "nome": "IBP (pantoprazol ou esomeprazol)",
+      "tipo": "medicamento",
+      "dose": "Conforme receita",
+      "quando": "Pela manhã, em jejum",
+      "frequencia": "diario",
+      "diasDaSemana": [],
+      "inicio": "2026-10-09",
+      "fim": "2026-11-05",
+      "observacao": "Por 4 semanas (Dr. Fernando Teles, consulta de 08/10/2026)."
+    },
+    {
+      "id": "vitamina-d-ataque",
+      "nome": "Vitamina D (dose de ataque)",
+      "tipo": "suplemento",
+      "dose": "Conforme receita",
+      "quando": "Conforme receita",
+      "frequencia": "a-definir",
+      "diasDaSemana": [],
+      "inicio": "2026-10-09",
+      "fim": "2026-12-03",
+      "observacao": "Dose de ataque por 8 semanas. Confira na receita a dose e a frequência (diária ou semanal) e edite aqui."
+    },
+    {
+      "id": "vitamina-d-manutencao",
+      "nome": "Vitamina D (manutenção)",
+      "tipo": "suplemento",
+      "dose": "Conforme receita",
+      "quando": "Conforme receita",
+      "frequencia": "a-definir",
+      "diasDaSemana": [],
+      "inicio": "2026-12-04",
+      "fim": "",
+      "observacao": "Começa depois das 8 semanas de ataque, conforme prescrição."
+    },
+    {
+      "id": "creatina",
+      "nome": "Creatina",
+      "tipo": "suplemento",
+      "dose": "5 g",
+      "quando": "Todos os dias",
+      "frequencia": "diario",
+      "diasDaSemana": [],
+      "inicio": "2026-10-09",
+      "fim": "",
+      "observacao": ""
+    },
+    {
+      "id": "whey",
+      "nome": "Whey protein ou bebida proteica",
+      "tipo": "suplemento",
+      "dose": "1 porção",
+      "quando": "Sempre que necessário",
+      "frequencia": "se-necessario",
+      "diasDaSemana": [],
+      "inicio": "2026-10-09",
+      "fim": "",
+      "observacao": "Para complementar a ingestão diária de proteína (meta de cerca de 150 g por dia)."
+    }
+  ],
+  "exames": [
+    {
+      "id": "exames-sangue",
+      "nome": "Exames de sangue",
+      "status": "pendente",
+      "data": "",
+      "local": "",
+      "observacao": "Fazer próximo da nova consulta, no fim de outubro ou início de novembro, para levar os resultados."
+    },
+    {
+      "id": "exames-cardiologicos",
+      "nome": "Exames cardiológicos (já realizados)",
+      "status": "feito",
+      "data": "",
+      "local": "",
+      "observacao": "Levar na próxima consulta."
+    },
+    {
+      "id": "ultrassom-abdominal",
+      "nome": "Ultrassonografia abdominal (já realizada)",
+      "status": "feito",
+      "data": "",
+      "local": "",
+      "observacao": "Levar na próxima consulta."
+    }
+  ],
+  "consultas": [
+    {
+      "id": "consulta-2026-10-08",
+      "data": "2026-10-08",
+      "hora": "",
+      "profissional": "Dr. Fernando Teles",
+      "especialidade": "",
+      "local": "",
+      "status": "realizada",
+      "resumo": "Medicações e suplementação:\n- IBP (pantoprazol ou esomeprazol): pela manhã, em jejum, por 4 semanas.\n- Vitamina D: dose de ataque por 8 semanas; depois, dose de manutenção conforme prescrição.\n- Creatina: 5 g todos os dias.\n- Whey protein ou bebida proteica sempre que necessário para complementar a ingestão diária.\n\nAlimentação: priorizar proteína ao longo do dia, buscando cerca de 150 g em 24 horas. Plano alimentar entregue (ver aba Plano alimentar).\n\nPeso: pesar-se 2 vezes por semana, às segundas e sextas, pela manhã, em jejum, após urinar e sem roupa, sempre nas mesmas condições.\n\nExames: fazer exames de sangue próximo da nova consulta; levar os exames complementares já realizados (cardiológicos e ultrassonografia abdominal).\n\nMeta para 4 semanas: mínima de perder 2 kg; ideal de perder 5 kg, conforme tolerância e evolução clínica.\n\nAguardar indicação/encaminhamento para psicoterapia.\n\nNova consulta em 4 semanas para reavaliar os resultados, a evolução do peso e definir os próximos passos."
+    },
+    {
+      "id": "consulta-retorno",
+      "data": "2026-11-05",
+      "hora": "",
+      "profissional": "Dr. Fernando Teles",
+      "especialidade": "",
+      "local": "",
+      "status": "a-agendar",
+      "resumo": "Retorno em 4 semanas (por volta de 05/11/2026): reavaliar os resultados dos exames, a evolução do peso e definir os próximos passos. Confirme a data ao agendar."
+    }
+  ],
+  "pendencias": [
+    {
+      "id": "agendar-retorno",
+      "texto": "Agendar a consulta de retorno com o Dr. Fernando Teles (por volta de 05/11)",
+      "prazo": "2026-10-16",
+      "feito": false
+    },
+    {
+      "id": "pedir-exames",
+      "texto": "Fazer os exames de sangue perto do retorno",
+      "prazo": "2026-11-02",
+      "feito": false
+    },
+    {
+      "id": "separar-exames",
+      "texto": "Separar os exames cardiológicos e a ultrassonografia abdominal para levar no retorno",
+      "prazo": "2026-11-05",
+      "feito": false
+    },
+    {
+      "id": "confirmar-vitamina-d",
+      "texto": "Conferir na receita a dose e a frequência da vitamina D e atualizar aqui",
+      "prazo": "2026-10-09",
+      "feito": false
+    },
+    {
+      "id": "psicoterapia",
+      "texto": "Aguardar indicação/encaminhamento para psicoterapia",
+      "prazo": "",
+      "feito": false
+    }
+  ],
+  "peso": {
+    "ativo": true,
+    "dias": [
+      1,
+      5
+    ],
+    "instrucoes": "Pela manhã, em jejum, após urinar e sem roupa, sempre nas mesmas condições.",
+    "inicio": "2026-10-08",
+    "prazo": "2026-11-05",
+    "metaMinimaKg": 2,
+    "metaIdealKg": 5,
+    "registros": {}
+  },
+  "proteina": {
+    "ativo": true,
+    "metaG": 150,
+    "dias": {}
+  },
+  "tomadas": {},
+  "plano": {
+    "titulo": "Orientações alimentares",
+    "autor": "Dr. Fernando Teles",
+    "data": "2026-10-08",
+    "objetivo": "Organizar a alimentação ao longo do dia, melhorar a saciedade, priorizar proteínas e vegetais e facilitar o controle das porções, sem deixar de ter flexibilidade nas escolhas.",
+    "secoes": [
+      {
+        "icone": "🍳",
+        "titulo": "Café da manhã",
+        "itens": [
+          "Sugestão: 2–3 ovos + pão + 1 fruta + iogurte natural.",
+          "Variar as frutas e, quando possível, escolher pães integrais ou com maior teor de fibras.",
+          "Café sem açúcar ou com pouco açúcar, conforme preferência."
+        ]
+      },
+      {
+        "icone": "🍎",
+        "titulo": "Lanche da manhã",
+        "nota": "Opcional",
+        "itens": [
+          "1 fruta.",
+          "Se não houver fome, não é obrigatório fazer esse lanche."
+        ]
+      },
+      {
+        "icone": "🍽️",
+        "titulo": "Almoço",
+        "itens": [
+          {
+            "texto": "Montar 1 prato de aproximadamente 400–500 g, usando como referência:",
+            "subitens": [
+              "50%: saladas e legumes variados.",
+              "25%: proteínas magras, como frango, peixe, patinho, mignon, alcatra ou outras carnes magras.",
+              "25%: carboidratos, como arroz, feijão, batata, purê, mandioca ou outros tubérculos."
+            ]
+          },
+          "Priorizar alimentos grelhados, assados, cozidos ou preparados com pouco óleo.",
+          "Evitar frituras, excesso de azeite e outros óleos, queijos gordurosos, molhos cremosos e preparações muito calóricas.",
+          "Preferir água em vez de sucos e refrigerantes açucarados.",
+          "Comer devagar e evitar repetir o prato."
+        ],
+        "prato": [
+          {
+            "parte": "Saladas e legumes",
+            "pct": 50
+          },
+          {
+            "parte": "Proteínas magras",
+            "pct": 25
+          },
+          {
+            "parte": "Carboidratos",
+            "pct": 25
+          }
+        ]
+      },
+      {
+        "icone": "🥤",
+        "titulo": "Lanche da tarde",
+        "nota": "Escolher uma opção",
+        "itens": [
+          "1 fruta + bebida proteica.",
+          "Iogurte proteico + fruta.",
+          "Sanduíche com frango desfiado, atum ou ovos.",
+          "Pão ou wrap com proteína magra e vegetais.",
+          "Whey protein com água ou leite, acompanhado de uma fruta, conforme a necessidade de proteína."
+        ]
+      },
+      {
+        "icone": "🌙",
+        "titulo": "Jantar",
+        "nota": "Pode ser uma refeição semelhante ao almoço ou uma opção prática com boa quantidade de proteína.",
+        "itens": [
+          "Prato de comida com proteína magra, legumes e uma porção adequada de carboidrato.",
+          "Sanduíche de frango desfiado com salada.",
+          "Wrap com carne moída magra e vegetais.",
+          "Hambúrguer caseiro de carne magra, acompanhado de salada e pão.",
+          "Comida japonesa: priorizar sashimi, niguiris em quantidade moderada e preparações simples, com pouco arroz; limitar cream cheese, frituras e molhos.",
+          "Saladona com frango, atum, ovos ou outra fonte de proteína, podendo incluir grão-de-bico ou outros acompanhamentos."
+        ]
+      },
+      {
+        "icone": "🥗",
+        "titulo": "Dicas para facilitar a rotina",
+        "itens": [
+          "Buscar incluir uma fonte de proteína em todas as refeições principais e nos lanches em que houver necessidade.",
+          "Variar frutas, verduras e legumes ao longo da semana para melhorar a ingestão de fibras, vitaminas e minerais.",
+          "Incluir feijão ou outras leguminosas regularmente.",
+          "Usar pequenas quantidades de azeite, castanhas, sementes ou abacate para fornecer gorduras de boa qualidade, sem exagerar nas porções.",
+          "Manter boa hidratação ao longo do dia.",
+          "Planejar opções práticas para os dias corridos, evitando depender de delivery, salgados e alimentos ultraprocessados."
+        ]
+      }
+    ],
+    "fechamento": "A ideia é realizar aproximadamente 4–5 refeições por dia, ajustando os lanches à fome e à rotina. O mais importante é manter consistência nas escolhas e controlar as porções, sem precisar seguir horários rígidos ou proibir completamente alimentos específicos."
+  },
+  "revisao": 0
+}

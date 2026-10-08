@@ -12,6 +12,7 @@ separa as aplicações pelo nome.
 | `http://view.blizzard.net/` | Blizzard, a central de monitoramento | repositório `blizzard`, nginx em `127.0.0.1:8080` |
 | `http://casa.blizzard.net/` | Portal da casa, com a lista das aplicações | `casa/index.html` |
 | `http://casa.blizzard.net/rotina/` | Rotina da Ana Liz (link permanente do iPad) | `casa/rotina/` |
+| `http://casa.blizzard.net/saude/` | Acompanhamento Médico (Ana Liz, Erika e Helio) | `casa/saude/` |
 | `http://casa.blizzard.net/manutencao/` | Manutenção da casa (cronograma a criar) | `casa/manutencao/` |
 
 O IP do Pi (`http://10.255.200.100/`), ou qualquer outro nome, abre o mesmo portal.
@@ -20,8 +21,8 @@ O IP do Pi (`http://10.255.200.100/`), ou qualquer outro nome, abre o mesmo port
 
 ```
 Caddyfile            nomes e rotas do proxy de entrada
-docker-compose.yml   o Caddy (porta 80) e a API da rotina (127.0.0.1:8081)
-install.sh           tira a Blizzard da porta 80 e sobe o Caddy e a API da rotina
+docker-compose.yml   o Caddy (porta 80) e as APIs da rotina (8081) e da saúde (8082), só em 127.0.0.1
+install.sh           tira a Blizzard da porta 80 e sobe o Caddy e as APIs
 casa/                o portal, servido em casa.blizzard.net
   index.html         página inicial com a lista das aplicações
   casa.css           estilo comum às páginas do portal
@@ -29,7 +30,10 @@ casa/                o portal, servido em casa.blizzard.net
     rotina.json      horários e atividades de cada dia da semana, agendas, exceções e projetos
     projetos.html    Projetos da manhã: o projeto de cada dia da semana, com ideias e materiais
     cartaz.html      o cartaz original, para imprimir
+  saude/             Acompanhamento Médico (index.html, app.js, saude.css)
   manutencao/        Manutenção da casa
+api/saude.py         API do acompanhamento médico: um arquivo por pessoa
+api/saude-inicial/   dados iniciais de cada pessoa (copiados para dados/saude/ só na primeira vez)
 api/rotina.py        API da rotina: o que foi feito e os comentários, por dia; resumo para o HA
 homeassistant/       pacote do Home Assistant (sensores da rotina e automações)
 dados/               gravado pelas APIs no Pi (fora do git)
@@ -150,16 +154,49 @@ e, em `configuration.yaml`, `homeassistant: packages: !include_dir_named package
 Recarregue o YAML ou reinicie o HA. As entidades ficam `sensor.rotina_ana_liz_*` e
 `binary_sensor.rotina_ana_liz_dia_completo`.
 
+## Acompanhamento Médico
+
+Fica em `casa.blizzard.net/saude/`, com uma aba por pessoa: Ana Liz, Erika e Helio. Cada aba tem:
+
+- **Hoje:** os medicamentos e suplementos do dia, cada um com o botão de tomado e os últimos 7 dias.
+  Também avisa quando é dia de pesagem e mostra a proteína do dia, com botões +10, +20, +25… e a meta.
+- **Próxima consulta:** quantos dias faltam e o que está pendente antes dela.
+- **Peso:**
+  - inicial, atual, variação e meta;
+  - gráfico com as linhas da meta mínima e da meta ideal;
+  - registro das pesagens, nos dias e nas condições combinados com o médico.
+- **Medicamentos, exames, consultas e pendências:** cada item pode ser adicionado, editado e apagado.
+  Um medicamento tem período (início e fim), frequência (todos os dias, dias da semana, quando
+  necessário ou a definir) e dose. A consulta guarda o resumo e as condutas.
+- **Plano alimentar**, quando houver um.
+
+**Onde ficam os dados:**
+
+- Tudo fica gravado no Pi, em `dados/saude/<pessoa>.json`, pela API `api/saude.py` (porta 8082). Nada
+  fica no navegador, e todos os aparelhos veem o mesmo estado.
+- Na primeira vez, cada arquivo é copiado de `api/saude-inicial/`. Depois disso as mudanças feitas na
+  tela não voltam para o git, e editar `saude-inicial/` não altera mais os dados do Pi.
+
+**Privacidade:** a página não tem senha. Qualquer aparelho que alcance o Pi na rede de casa consegue
+abrir e alterar os dados. Os dados iniciais do Helio (plano alimentar, medicamentos e condutas da
+consulta de 08/10/2026) estão em `api/saude-inicial/helio.json`, neste repositório privado.
+
+Para conferir a API no Pi:
+
+```bash
+curl -s -H 'Host: casa.blizzard.net' http://127.0.0.1/saude/api/pessoas
+```
+
 ## Publicar uma aplicação com servidor próprio
 
 Cada aplicação vive no próprio repositório, com o próprio `docker compose`, e escuta **só em
-`127.0.0.1`**, numa porta livre (8082, 8083…). Assim ela não aparece na rede sem passar pelo proxy.
+`127.0.0.1`**, numa porta livre (8083, 8084…). Assim ela não aparece na rede sem passar pelo proxy.
 
-1. Suba a aplicação, por exemplo em `127.0.0.1:8082`.
+1. Suba a aplicação, por exemplo em `127.0.0.1:8083`.
 2. Acrescente um bloco ao `Caddyfile`:
    ```caddy
    http://manutencao.blizzard.net {
-   	reverse_proxy 127.0.0.1:8082
+   	reverse_proxy 127.0.0.1:8083
    }
    ```
    Para ela ficar dentro do portal (`casa.blizzard.net/<nome>/`), use `handle_path /<nome>/*` com o
@@ -177,6 +214,7 @@ Cada aplicação vive no próprio repositório, com o próprio `docker compose`,
 | 80 | Caddy (este repositório) | sim |
 | 8080 | nginx da Blizzard | não (127.0.0.1) |
 | 8081 | API da rotina (este repositório) | não (127.0.0.1) |
+| 8082 | API do acompanhamento médico (este repositório) | não (127.0.0.1) |
 | 8787 | API de configuração da Blizzard | não (127.0.0.1) |
 | 8099 | ponte do Home Assistant da Blizzard | não (127.0.0.1) |
 | 1984 | go2rtc, API e painel | sim |

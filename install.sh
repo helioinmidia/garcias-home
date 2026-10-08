@@ -37,7 +37,7 @@ fi
 echo "==> Proxy de entrada (Caddy) e API da rotina"
 cd "$SERVIDOR_DIR"
 # Dono dos arquivos gravados pelas APIs (pasta dados/, fora do git).
-mkdir -p dados/rotina
+mkdir -p dados/rotina dados/saude
 if ! grep -q '^CASA_UID=' .env 2>/dev/null; then
   printf 'CASA_UID=%s\nCASA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
 fi
