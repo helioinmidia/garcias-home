@@ -16,7 +16,8 @@ de uma consulta.
   GET    /pessoas                                  -> {"pessoas": [{id, nome}]}
   GET    /pessoa/<p>                               -> documento inteiro da pessoa (com "revisao")
   PUT    /pessoa/<p>/<colecao>/<item>              <- item (modalidades, medicamentos, exames, consultas, pendencias,
-                                                     composicao = avaliações de composição corporal, ex.: InBody)
+                                                     composicao = avaliações de composição corporal, ex.: InBody;
+                                                     procedimentos = cirurgias e procedimentos, com etapas e orçamento)
   DELETE /pessoa/<p>/<colecao>/<item>
   PUT    /pessoa/<p>/tomada/AAAA-MM-DD/<med>       <- {"tomado": bool}
   PUT    /pessoa/<p>/peso/AAAA-MM-DD               <- {"kg": 82.4, "nota": "..."}
@@ -56,7 +57,7 @@ TIPOS_ARQUIVO = {"application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "pn
 ID = r"[a-z0-9][a-z0-9-]{0,63}"
 DATA = r"\d{4}-\d{2}-\d{2}"
 ROTA_PESSOA = re.compile(rf"^/pessoa/({ID})$")
-ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias|composicao)/({ID})$")
+ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias|composicao|procedimentos)/({ID})$")
 ROTA_DOCUMENTO = re.compile(rf"^/pessoa/({ID})/documento/({ID})$")
 ROTA_TOMADA = re.compile(rf"^/pessoa/({ID})/tomada/({DATA})/({ID})$")
 ROTA_PESO = re.compile(rf"^/pessoa/({ID})/peso/({DATA})$")
@@ -262,6 +263,18 @@ ESQUEMAS = {
         "segmentar": segmentar,
         "observacao": texto(2000),
     },
+    "procedimentos": {
+        "modalidade": id_ou_vazio,
+        "nome": texto(160, True),
+        "status": opcao("avaliacao", "confirmado", "guia", "agendado", "realizado", "cancelado"),
+        "data": data_ou_vazio,
+        "hora": hora_ou_vazio,
+        "local": texto(240),
+        "orcamento": texto(1000),
+        "validadeOrcamento": data_ou_vazio,
+        "contatos": texto(500),
+        "observacao": texto(3000),
+    },
     "pendencias": {
         "modalidade": id_ou_vazio,
         "texto": texto(300, True),
@@ -276,6 +289,7 @@ PADROES = {
     "consultas": {"status": "agendada"},
     "pendencias": {},
     "composicao": {},
+    "procedimentos": {"status": "avaliacao"},
 }
 CONFIG = {
     "peso": {

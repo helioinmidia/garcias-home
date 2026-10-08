@@ -170,6 +170,9 @@ Cada aba tem:
   Também avisa quando é dia de pesagem e mostra a proteína do dia, com botões +10, +20, +25… e a meta.
 - **Próximas consultas:** uma por modalidade, com quantos dias faltam e o resumo e as condutas da última
   consulta realizada. Sem retorno marcado, "Agendar retorno" já vem preenchido com os dados da última.
+- **Procedimentos:** cirurgias e procedimentos com as etapas (confirmado, guia liberada, agendado,
+  realizado), a validade do orçamento, os contatos com telefone clicável e o botão para avançar de etapa.
+  Só aparece para quem tem algum procedimento; para criar, use "+ Procedimento" no cartão Consultas.
 - **Peso:**
   - inicial, atual, variação e meta;
   - gráfico com as linhas da meta mínima e da meta ideal;

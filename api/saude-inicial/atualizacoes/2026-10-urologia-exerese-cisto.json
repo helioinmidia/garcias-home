@@ -1,0 +1,62 @@
+{
+  "id": "2026-10-urologia-exerese-cisto",
+  "pessoa": "helio",
+  "descricao": "Plano de tratamento e orçamento da exérese de cisto (Urologia, Dr. Bruno Bertoni Ferraz, consulta de 30/09/2026).",
+  "itens": {
+    "procedimentos": [
+      {
+        "id": "exerese-cisto",
+        "modalidade": "urologia",
+        "nome": "Exérese de cisto",
+        "status": "avaliacao",
+        "data": "",
+        "hora": "",
+        "local": "Hospital Santa Cruz ou Clínica Los Angeles (à escolha do paciente)",
+        "orcamento": "Equipe cirúrgica (honorários médicos e instrumentador): R$ 2.500,00 à vista ou até 3x de R$ 950,00, pago até 1 dia antes do procedimento.\nHospital: internação coberta pelo plano de saúde.",
+        "validadeOrcamento": "2026-10-30",
+        "contatos": "Cláudia: (41) 99660-9864\nDr. Bruno Ferraz: (43) 99143-0050",
+        "observacao": "Plano de tratamento apresentado na consulta de 30/09/2026 (Dr. Bruno Bertoni Ferraz, CRM-PR 35.526, RQE 33.425). Orçamento válido por 30 dias.\nPróximos passos: 1) confirmação do tratamento; 2) liberação da guia; 3) agendamento do procedimento."
+      }
+    ],
+    "pendencias": [
+      {
+        "id": "exerese-confirmar",
+        "modalidade": "urologia",
+        "texto": "Exérese de cisto: confirmar o tratamento com o Dr. Bruno (orçamento vale até 30/10/2026)",
+        "prazo": "2026-10-30",
+        "feito": false
+      },
+      {
+        "id": "exerese-hospital",
+        "modalidade": "urologia",
+        "texto": "Exérese de cisto: escolher o hospital (Hospital Santa Cruz ou Clínica Los Angeles)",
+        "prazo": "",
+        "feito": false
+      },
+      {
+        "id": "exerese-guia",
+        "modalidade": "urologia",
+        "texto": "Exérese de cisto: liberar a guia no plano de saúde",
+        "prazo": "",
+        "feito": false
+      },
+      {
+        "id": "exerese-agendar",
+        "modalidade": "urologia",
+        "texto": "Exérese de cisto: agendar o procedimento",
+        "prazo": "",
+        "feito": false
+      },
+      {
+        "id": "exerese-pagar",
+        "modalidade": "urologia",
+        "texto": "Exérese de cisto: pagar a equipe cirúrgica até 1 dia antes (R$ 2.500,00 à vista ou 3x de R$ 950,00)",
+        "prazo": "",
+        "feito": false
+      }
+    ]
+  },
+  "acrescentarResumo": {
+    "consulta-urologia-2026-09-30": "Plano de tratamento: exérese de cisto. Orçamento da equipe cirúrgica: R$ 2.500,00 à vista ou até 3x de R$ 950,00, pago até 1 dia antes; internação coberta pelo plano, no Hospital Santa Cruz ou na Clínica Los Angeles. Orçamento válido por 30 dias (até 30/10/2026). Próximos passos: confirmação do tratamento, liberação da guia e agendamento do procedimento. Contatos: Cláudia (41) 99660-9864; Dr. Bruno Ferraz (43) 99143-0050."
+  }
+}

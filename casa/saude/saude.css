@@ -163,6 +163,18 @@ main { max-width: 1160px; margin: 0 auto; padding: 22px 16px 64px; display: flex
 .prox + .prox { margin-top: 10px; }
 .prox h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
 
+/* Procedimentos: etapas em linha. */
+.proc { padding: 12px 14px; border-radius: 16px; background: var(--soft); box-shadow: inset 4px 0 0 var(--mod, var(--line)); }
+.proc + .proc { margin-top: 10px; }
+.etapas { list-style: none; margin: 10px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; counter-reset: etapa; }
+.etapas li { counter-increment: etapa; font-size: 12px; font-weight: 700; color: var(--muted); padding-top: 10px; border-top: 4px solid var(--line); border-radius: 2px; }
+.etapas li::before { content: counter(etapa) '. '; }
+.etapas li.feita { color: var(--ok); border-top-color: var(--ok); }
+.etapas li.proxima { color: var(--text); border-top-color: var(--s2); }
+.proc-orc { padding: 8px 10px; border-radius: 10px; background: var(--card); margin-top: 8px; }
+.proc-contatos { margin-top: 8px; font-size: 14px; }
+.proc-contatos b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+
 /* Peso. */
 .peso-topo { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 14px; }
 .num { border-radius: 16px; padding: 12px 14px; background: var(--soft); background: color-mix(in srgb, var(--t) 12%, var(--card)); box-shadow: inset 0 3px 0 var(--t); }

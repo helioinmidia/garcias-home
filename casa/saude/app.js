@@ -153,7 +153,10 @@
     if (filtro !== 'todas' && !modalidade(filtro)) filtro = 'todas';
     var mostraPeso = doc.peso.ativo && passaOuSem(doc.peso);
     var mostraPlano = doc.plano && passaOuSem(doc.plano);
-    var secoes = [['hoje-sec', 'Hoje'], ['prox-sec', 'Próximas consultas'], ['mod-sec', 'Modalidades']];
+    var temProc = (doc.procedimentos || []).some(passa);
+    var secoes = [['hoje-sec', 'Hoje'], ['prox-sec', 'Próximas consultas']];
+    if (temProc) secoes.push(['proc-sec', 'Procedimentos']);
+    secoes.push(['mod-sec', 'Modalidades']);
     if (mostraPeso) secoes.push(['peso-sec', 'Peso']);
     secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências'], ['docs-sec', 'Documentos']);
     if (mostraPlano) secoes.push(['plano-sec', 'Plano alimentar']);
@@ -178,7 +181,7 @@
     }
     add(pag,
       barraFiltro(),
-      h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), cartaoModalidades())),
+      h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), temProc ? cartaoProcedimentos() : null, cartaoModalidades())),
       mostraPeso ? cartaoPeso() : null,
       h('div', { class: 'grade' }, cartaoMedicamentos(), cartaoExames()),
       h('div', { class: 'grade' }, cartaoConsultas(), h('div', { class: 'coluna' }, cartaoPendencias(), cartaoDocumentos())),
@@ -214,6 +217,7 @@
     'mod-titulo': ['var(--s6)', '<path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15v1a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>'],
     'peso-titulo': ['var(--s3)', '<circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.9 1.5L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.9-2.5L19.4 9.5A2 2 0 0 0 17.5 8Z"/>'],
     'comp-titulo': ['var(--s5)', '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
+    'proc-titulo': ['var(--s2)', '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 7.5v9M7.5 12h9"/>'],
     'meds-titulo': ['var(--s5)', '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>'],
     'exames-titulo': ['var(--s4)', '<path d="M14.5 2v17.5a2.5 2.5 0 0 1-5 0V2"/><path d="M8.5 2h7M14.5 16h-5"/>'],
     'consultas-titulo': ['var(--s1)', '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>'],
@@ -672,8 +676,59 @@
   }
 
   var STATUS_CONSULTA = { 'a-agendar': ['A agendar', 'aviso'], agendada: ['Agendada', 'info'], realizada: ['Realizada', 'ok'], cancelada: ['Cancelada', ''] };
+  // ---------- procedimentos (cirurgias) ----------
+  var ETAPAS = [['confirmado', 'Confirmado'], ['guia', 'Guia liberada'], ['agendado', 'Agendado'], ['realizado', 'Realizado']];
+  var STATUS_PROC = { avaliacao: ['Em avaliação', 'aviso'], confirmado: ['Confirmado', 'info'], guia: ['Guia liberada', 'info'],
+    agendado: ['Agendado', 'info'], realizado: ['Realizado', 'ok'], cancelado: ['Cancelado', ''] };
+  // Texto com telefones: cada número vira um link que liga direto do celular.
+  function comTelefones(texto) {
+    return texto.split('\n').map(function (linha, i) {
+      var partes = [], resto = linha, m, re = /\(?\d{2}\)?\s?9?\d{4}-?\d{4}/;
+      while ((m = re.exec(resto))) {
+        partes.push(resto.slice(0, m.index), h('a', { href: 'tel:+55' + m[0].replace(/\D/g, '') }, m[0]));
+        resto = resto.slice(m.index + m[0].length);
+      }
+      partes.push(resto);
+      return h('div', null, partes);
+    });
+  }
+  function cartaoProcedimentos() {
+    var c = add(cartao('proc-sec', 'proc-titulo'), cabecalho('Procedimentos', 'proc-titulo', botaoAdd('procedimentos', 'Adicionar')));
+    var k = hoje();
+    (doc.procedimentos || []).filter(passa).forEach(function (p) {
+      var st = STATUS_PROC[p.status] || STATUS_PROC.avaliacao;
+      var idx = ETAPAS.map(function (e) { return e[0]; }).indexOf(p.status);
+      var bloco = h('div', { class: 'proc', style: modalidade(p.modalidade) ? '--mod:' + corMod(p.modalidade) : null });
+      add(bloco,
+        h('div', { class: 'item-titulo' }, p.nome, h('span', { class: 'chip ' + st[1] }, st[0]), chipMod(p.modalidade)),
+        p.status !== 'cancelado' ? h('ol', { class: 'etapas', 'aria-label': 'Etapas' }, ETAPAS.map(function (e, i) {
+          return h('li', { class: i <= idx ? 'feita' : i === idx + 1 ? 'proxima' : '' }, e[1]);
+        })) : null,
+        h('div', { class: 'item-linha' }, p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : 'Data a definir', p.local ? ' · ' + p.local : ''));
+      if (p.validadeOrcamento && idx < 2 && p.status !== 'cancelado') {
+        var faltam = diasEntre(k, p.validadeOrcamento);
+        add(bloco, h('p', { style: 'margin:8px 0 0' }, h('span', { class: 'chip ' + (faltam < 0 ? 'ruim' : faltam <= 7 ? 'aviso' : 'info') },
+          faltam < 0 ? 'Orçamento vencido em ' + dataCurta(p.validadeOrcamento) : 'Orçamento vale até ' + dataCurta(p.validadeOrcamento) + (faltam === 0 ? ' (hoje)' : ' · faltam ' + faltam + (faltam === 1 ? ' dia' : ' dias')))));
+      }
+      if (p.orcamento) add(bloco, h('div', { class: 'item-obs proc-orc' }, p.orcamento));
+      if (p.contatos) add(bloco, h('div', { class: 'proc-contatos' }, h('b', null, 'Contatos'), comTelefones(p.contatos)));
+      if (p.observacao) add(bloco, h('details', { class: 'resumo' }, h('summary', null, 'Plano e observações'), h('div', null, p.observacao)));
+      var proxima = p.status === 'cancelado' || p.status === 'realizado' ? null : ETAPAS[idx + 1];
+      add(bloco, h('div', { class: 'botoes' },
+        proxima ? h('button', { type: 'button', class: 'btn primario', onclick: function () {
+          var dados = Object.assign({}, p, { status: proxima[0] });
+          if (proxima[0] === 'agendado' && !p.data) { editaItem('procedimentos', dados, null, 'Agendar ' + p.nome.toLowerCase()); return; }
+          grava('PUT', '/procedimentos/' + p.id, dados);
+        } }, 'Marcar: ' + proxima[1].toLowerCase()) : null,
+        h('button', { type: 'button', class: 'btn', onclick: function () { editaItem('procedimentos', p); } }, 'Editar')));
+      add(c, bloco);
+    });
+    return c;
+  }
+
   function cartaoConsultas() {
-    var c = add(cartao('consultas-sec', 'consultas-titulo'), cabecalho('Consultas', 'consultas-titulo', botaoAdd('consultas', 'Adicionar')));
+    var c = add(cartao('consultas-sec', 'consultas-titulo'), cabecalho('Consultas', 'consultas-titulo',
+      h('span', { class: 'acoes' }, botaoAdd('procedimentos', '+ Procedimento'), botaoAdd('consultas', 'Adicionar'))));
     var consultas = doc.consultas.filter(passa);
     if (!consultas.length) { add(c, h('p', { class: 'vazio' }, 'Nenhuma consulta registrada' + nomeFiltro() + '.')); return c; }
     var lista = h('ul', { class: 'lista' });
@@ -857,6 +912,16 @@
       ['texto', 'Pendência', 'texto', { obrigatorio: true }],
       ['prazo', 'Prazo', 'data'],
       ['feito', 'Feita', 'check'] ] },
+    procedimentos: { titulo: 'procedimento', campos: [
+      ['modalidade', 'Modalidade', 'modalidade'],
+      ['nome', 'Procedimento', 'texto', { obrigatorio: true, dica: 'Ex.: Exérese de cisto' }],
+      ['status', 'Etapa', 'opcoes', { opcoes: [['avaliacao', 'Em avaliação'], ['confirmado', 'Confirmado'], ['guia', 'Guia liberada'], ['agendado', 'Agendado'], ['realizado', 'Realizado'], ['cancelado', 'Cancelado']] }],
+      ['data', 'Data', 'data', { par: true }], ['hora', 'Hora', 'hora', { par: true }],
+      ['local', 'Local', 'texto'],
+      ['orcamento', 'Orçamento', 'textoLongo'],
+      ['validadeOrcamento', 'Orçamento válido até', 'data'],
+      ['contatos', 'Contatos (um por linha)', 'textoLongo'],
+      ['observacao', 'Plano e observações', 'textoLongo'] ] },
     modalidades: { titulo: 'modalidade', campos: [
       ['nome', 'Modalidade', 'texto', { obrigatorio: true, dica: 'Ex.: Urologia, Medicina Esportiva, Pediatria' }],
       ['profissional', 'Médico ou profissional', 'texto'],
@@ -951,6 +1016,7 @@
     exames: { status: 'pendente' },
     consultas: { status: 'agendada' },
     pendencias: { feito: false },
+    procedimentos: { status: 'avaliacao' },
     modalidades: {},
   };
   // modelo: valores iniciais de um item novo (ex.: retorno copiado da última consulta).
