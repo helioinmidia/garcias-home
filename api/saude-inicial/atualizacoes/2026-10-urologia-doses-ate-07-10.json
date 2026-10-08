@@ -1,0 +1,14 @@
+{
+  "id": "2026-10-urologia-doses-ate-07-10",
+  "pessoa": "helio",
+  "descricao": "Clomifeno e anastrozol tomados em todos os dias previstos desde o início (30/09/2026) até 07/10/2026, conforme informado em 08/10. O início em 30/09 fica confirmado.",
+  "tomadas": {
+    "2026-09-30": ["clomifeno"],
+    "2026-10-01": ["anastrozol"],
+    "2026-10-02": ["clomifeno"],
+    "2026-10-05": ["clomifeno"],
+    "2026-10-06": ["anastrozol"],
+    "2026-10-07": ["clomifeno"]
+  },
+  "concluirPendencias": ["inicio-urologia"]
+}

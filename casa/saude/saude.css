@@ -125,6 +125,17 @@ main { max-width: 1160px; margin: 0 auto; padding: 22px 16px 64px; display: flex
 .check[aria-checked="true"] { background: var(--ok); border-color: var(--ok); }
 .check[aria-checked="true"] svg { opacity: 1; }
 .feito .nome b { color: var(--ok); }
+.doses { flex: none; display: flex; flex-direction: column; align-items: center; min-width: 56px; padding: 6px 8px; border-radius: 12px; background: var(--card); line-height: 1.1; }
+.doses b { font-size: 20px; }
+.doses small { font-size: 11px; color: var(--muted); font-weight: 600; }
+.doses .chip { margin-top: 4px; font-size: 10px; padding: 2px 6px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--text); }
+.lista .tag, .proc .tag { background: var(--soft); }
+.topicos { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+.topicos li { margin: 2px 0; }
+.topicos li::marker { color: var(--accent); }
+details.resumo .tags, details.resumo .topicos { margin-top: 8px; }
 .dias7 { display: flex; gap: 3px; margin-top: 5px; }
 .dias7 i { width: 16px; height: 6px; border-radius: 3px; background: var(--line); }
 .dias7 i.sim { background: var(--ok); }
@@ -212,6 +223,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .faixa-nome small { color: var(--muted); font-size: 12px; }
 .faixa-trilho { position: relative; height: 14px; border-radius: 999px; background: var(--soft); }
 .faixa-normal { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: var(--ok-soft); box-shadow: inset 0 0 0 1px var(--ok); opacity: 0.9; }
+.faixa-caminho { position: absolute; top: 3px; bottom: 3px; border-radius: 999px; background: repeating-linear-gradient(90deg, var(--warn-soft) 0 6px, transparent 6px 10px); box-shadow: inset 0 0 0 1px var(--warn); opacity: 0.8; }
+.faixa-alvo { position: absolute; top: -5px; bottom: -5px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--ok); }
 .faixa-marca { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 3px var(--card); }
 .faixa-marca.aviso { background: var(--warn); }
 .faixa-marca.ok { background: var(--ok); }

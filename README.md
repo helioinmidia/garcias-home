@@ -166,7 +166,8 @@ dia, com a modalidade de cada item.
 
 Cada aba tem:
 
-- **Hoje:** os medicamentos e suplementos do dia, cada um com o botão de tomado e os últimos 7 dias.
+- **Hoje:** os medicamentos e suplementos do dia, cada um com o botão de tomado, os últimos 7 dias e o
+  contador de doses (tomadas de previstas no período, e as esquecidas). Os "quando necessário" também.
   Também avisa quando é dia de pesagem e mostra a proteína do dia, com botões +10, +20, +25… e a meta.
 - **Próximas consultas:** uma por modalidade, com quantos dias faltam e o resumo e as condutas da última
   consulta realizada. Sem retorno marcado, "Agendar retorno" já vem preenchido com os dados da última.

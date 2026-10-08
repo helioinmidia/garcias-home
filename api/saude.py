@@ -9,8 +9,8 @@ api/saude-inicial/<id>.json; depois disso só a API grava (os dados ficam no Pi,
 
 Atualizações: cada arquivo em api/saude-inicial/atualizacoes/*.json é aplicado uma única vez a cada
 pessoa (fica anotado em "migracoes"), sem apagar nada do que foi registrado na tela. Uma atualização
-pode criar modalidades, acrescentar itens, lançar pesagens em datas ainda vazias e completar o resumo
-de uma consulta.
+pode criar modalidades, acrescentar itens, lançar pesagens em datas ainda vazias, completar o resumo
+de uma consulta e trocar textos que ainda estejam iguais ao original ("substituirSe").
 
   GET    /status                                   -> {"ok": true}
   GET    /pessoas                                  -> {"pessoas": [{id, nome}]}
@@ -24,7 +24,7 @@ de uma consulta.
   DELETE /pessoa/<p>/peso/AAAA-MM-DD
   PUT    /pessoa/<p>/proteina/AAAA-MM-DD           <- {"g": 120}
   PUT    /pessoa/<p>/config/peso                   <- {ativo, dias, instrucoes, inicio, prazo, metaMinimaKg, metaIdealKg,
-                                                     modalidade}
+                                                     alvoKg (peso alvo de longo prazo), modalidade}
   PUT    /pessoa/<p>/config/proteina               <- {ativo, metaG, modalidade}
   PUT    /pessoa/<p>/documento/<id>                <- o arquivo (PDF ou imagem, até 15 MB) no corpo; cabeçalhos
                                                      X-Nome, X-Modalidade e X-Data (opcionais, nome em %-encoding)
@@ -300,6 +300,7 @@ CONFIG = {
         "prazo": data_ou_vazio,
         "metaMinimaKg": numero(0, 100),
         "metaIdealKg": numero(0, 100),
+        "alvoKg": numero(0, 400),
         "modalidade": id_ou_vazio,
     },
     "proteina": {"ativo": booleano, "metaG": numero(0, 1000), "modalidade": id_ou_vazio},
@@ -390,6 +391,29 @@ def aplica_atualizacoes():
                         doc[chave]["modalidade"] = padrao
                 if doc.get("plano") and not doc["plano"].get("modalidade"):
                     doc["plano"]["modalidade"] = padrao
+            # Textos trocados só se ainda forem exatamente o original (o que foi editado na tela fica como está):
+            # {"colecao": {"id": {"campo": [["texto antigo", ...], "texto novo"]}}}
+            for colecao, por_id in atualizacao.get("substituirSe", {}).items():
+                for item in doc[colecao]:
+                    for campo, (antigos, novo) in por_id.get(item.get("id"), {}).items():
+                        if (item.get(campo) or "").strip() in [a.strip() for a in antigos]:
+                            item[campo] = ESQUEMAS[colecao][campo](campo, novo)
+            # Configuração (peso/proteína): só preenche chaves ainda vazias.
+            for chave, valores in atualizacao.get("config", {}).items():
+                for campo, valor in valores.items():
+                    if not doc[chave].get(campo):
+                        doc[chave][campo] = CONFIG[chave][campo](campo, valor)
+            # Doses tomadas lançadas depois ({"AAAA-MM-DD": ["med", ...]}); não mexe nas já marcadas.
+            for data, meds in atualizacao.get("tomadas", {}).items():
+                data_ou_vazio("tomadas", data)
+                dia = doc["tomadas"].setdefault(data, {})
+                for med in meds:
+                    dia.setdefault(med, f"{data}T00:00:00 (lançado depois)")
+            # Pendências concluídas (só marca; não desmarca o que já foi mexido na tela).
+            for pid in atualizacao.get("concluirPendencias", []):
+                for pend in doc["pendencias"]:
+                    if pend.get("id") == pid:
+                        pend["feito"] = True
             # Pesagens: entram só nas datas ainda sem registro (nunca sobrescrevem o que foi lançado na tela).
             for data, reg in atualizacao.get("peso", {}).items():
                 data_ou_vazio("peso", data)
@@ -645,7 +669,7 @@ class Handler(BaseHTTPRequestHandler):
             pessoa, chave = m.groups()
 
             def acao():
-                config = valida(CONFIG[chave], self._corpo(), {"metaMinimaKg": 0, "metaIdealKg": 0, "metaG": 0})
+                config = valida(CONFIG[chave], self._corpo(), {"metaMinimaKg": 0, "metaIdealKg": 0, "alvoKg": 0, "metaG": 0})
                 return altera(pessoa, lambda doc: doc[chave].update(config))
             return self._trata(acao)
 

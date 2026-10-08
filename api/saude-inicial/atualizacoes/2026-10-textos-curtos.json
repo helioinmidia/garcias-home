@@ -1,0 +1,313 @@
+{
+  "id": "2026-10-textos-curtos",
+  "pessoa": "helio",
+  "descricao": "Observações, resumos e pendências em tópicos curtos, sem repetir o que a tela já mostra (dose, dias, período, médico). Só troca textos que ainda estejam iguais ao original.",
+  "substituirSe": {
+    "medicamentos": {
+      "ibp": {
+        "dose": [
+          [
+            "Conforme receita"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Por 4 semanas (Dr. Fernando Teles, consulta de 08/10/2026)."
+          ],
+          "4 semanas"
+        ]
+      },
+      "vitamina-d-ataque": {
+        "quando": [
+          [
+            "Conforme receita"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Dose de ataque por 8 semanas. Confira na receita a dose e a frequência (diária ou semanal) e edite aqui."
+          ],
+          "8 semanas\nConferir dose e frequência na receita"
+        ]
+      },
+      "vitamina-d-manutencao": {
+        "dose": [
+          [
+            "Conforme receita"
+          ],
+          ""
+        ],
+        "quando": [
+          [
+            "Conforme receita"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Começa depois das 8 semanas de ataque, conforme prescrição."
+          ],
+          "Depois do ataque"
+        ]
+      },
+      "creatina": {
+        "quando": [
+          [
+            "Todos os dias"
+          ],
+          ""
+        ]
+      },
+      "whey": {
+        "quando": [
+          [
+            "Sempre que necessário"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Para complementar a ingestão diária de proteína (meta de cerca de 150 g por dia)."
+          ],
+          "Completa a meta de proteína"
+        ]
+      },
+      "clomifeno": {
+        "quando": [
+          [
+            "Segunda, quarta e sexta"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Receita de 30/09/2026 (Dr. Bruno Bertoni Ferraz): tomar 1 comprimido em dias alternados (segunda, quarta e sexta) por 60 dias. Caixa com 30 comprimidos.\nO início foi contado a partir da data da receita; se começou em outro dia, ajuste o início e o fim (60 dias)."
+          ],
+          "60 dias\nCaixa com 30"
+        ]
+      },
+      "anastrozol": {
+        "quando": [
+          [
+            "Terça e quinta"
+          ],
+          ""
+        ],
+        "observacao": [
+          [
+            "Receita de 30/09/2026 (Dr. Bruno Bertoni Ferraz; na receita, \"Anastrazol\"): tomar 1 comprimido às terças e quintas por 60 dias. Caixa com 30 comprimidos.\nO início foi contado a partir da data da receita; se começou em outro dia, ajuste o início e o fim (60 dias)."
+          ],
+          "60 dias\nCaixa com 30"
+        ]
+      }
+    },
+    "exames": {
+      "exames-sangue": {
+        "observacao": [
+          [
+            "Fazer próximo da nova consulta, no fim de outubro ou início de novembro, para levar os resultados."
+          ],
+          "Perto do retorno\nLevar resultados"
+        ]
+      },
+      "exames-cardiologicos": {
+        "observacao": [
+          [
+            "Levar na próxima consulta."
+          ],
+          "Levar no retorno"
+        ]
+      },
+      "ultrassom-abdominal": {
+        "observacao": [
+          [
+            "Levar na próxima consulta."
+          ],
+          "Levar no retorno"
+        ]
+      },
+      "exames-sangue-urologia": {
+        "observacao": [
+          [
+            "Pedido de 30/09/2026 (Dr. Bruno Bertoni Ferraz), CID N39:\n- Testosterona total e livre (TUSS 40316513 / 40316505)\n- Estradiol (TUSS 40316524)\n- FSH (TUSS 40316289)\n- LH (TUSS 40316335)\n- Prolactina (TUSS 40316416)\n- TSH e T4 livre (TUSS 40316521 / 40316491)\n- SHBG (TUSS 40316300)\n- Albumina (TUSS 40301222)\n- PSA total (TUSS 40306305)\n- PSA livre (TUSS 40316149)\nDá para colher junto com os exames de sangue pedidos pela Medicina Esportiva."
+          ],
+          "Testosterona total e livre\nEstradiol\nFSH\nLH\nProlactina\nTSH e T4 livre\nSHBG\nAlbumina\nPSA total\nPSA livre\nCID N39\nColher junto com os da Medicina Esportiva"
+        ]
+      },
+      "inbody-2026-10-08": {
+        "observacao": [
+          [
+            "Peso 111,4 kg · massa de gordura 31,6 kg (PGC 28,3 %) · massa muscular esquelética 46,0 kg · IMC 34,0 · gordura visceral nível 13 · pontuação 81/100. Detalhes no cartão Composição corporal."
+          ],
+          "Pontuação 81/100\nDetalhes na aba Bioimpedância"
+        ]
+      }
+    },
+    "consultas": {
+      "consulta-2026-10-08": {
+        "resumo": [
+          [
+            "Medicações e suplementação:\n- IBP (pantoprazol ou esomeprazol): pela manhã, em jejum, por 4 semanas.\n- Vitamina D: dose de ataque por 8 semanas; depois, dose de manutenção conforme prescrição.\n- Creatina: 5 g todos os dias.\n- Whey protein ou bebida proteica sempre que necessário para complementar a ingestão diária.\n\nAlimentação: priorizar proteína ao longo do dia, buscando cerca de 150 g em 24 horas. Plano alimentar entregue (ver aba Plano alimentar).\n\nPeso: pesar-se 2 vezes por semana, às segundas e sextas, pela manhã, em jejum, após urinar e sem roupa, sempre nas mesmas condições.\n\nExames: fazer exames de sangue próximo da nova consulta; levar os exames complementares já realizados (cardiológicos e ultrassonografia abdominal).\n\nMeta para 4 semanas: mínima de perder 2 kg; ideal de perder 5 kg, conforme tolerância e evolução clínica.\n\nAguardar indicação/encaminhamento para psicoterapia.\n\nNova consulta em 4 semanas para reavaliar os resultados, a evolução do peso e definir os próximos passos.",
+            "Medicações e suplementação:\n- IBP (pantoprazol ou esomeprazol): pela manhã, em jejum, por 4 semanas.\n- Vitamina D: dose de ataque por 8 semanas; depois, dose de manutenção conforme prescrição.\n- Creatina: 5 g todos os dias.\n- Whey protein ou bebida proteica sempre que necessário para complementar a ingestão diária.\n\nAlimentação: priorizar proteína ao longo do dia, buscando cerca de 150 g em 24 horas. Plano alimentar entregue (ver aba Plano alimentar).\n\nPeso: pesar-se 2 vezes por semana, às segundas e sextas, pela manhã, em jejum, após urinar e sem roupa, sempre nas mesmas condições.\n\nExames: fazer exames de sangue próximo da nova consulta; levar os exames complementares já realizados (cardiológicos e ultrassonografia abdominal).\n\nMeta para 4 semanas: mínima de perder 2 kg; ideal de perder 5 kg, conforme tolerância e evolução clínica.\n\nAguardar indicação/encaminhamento para psicoterapia.\n\nNova consulta em 4 semanas para reavaliar os resultados, a evolução do peso e definir os próximos passos.\n\nBioimpedância (InBody 120, QOR Médica, 08/10/2026 14:44): peso 111,4 kg · massa de gordura 31,6 kg (PGC 28,3 %) · massa muscular esquelética 46,0 kg · massa livre de gordura 79,8 kg · IMC 34,0 · gordura visceral nível 13 · relação cintura-quadril 0,96 · taxa metabólica basal 2.094 kcal · pontuação 81/100. Peso ideal 93,9 kg; controle de gordura −17,5 kg; controle muscular 0,0 kg. Metas a partir de 111,4 kg: mínima 109,4 kg (−2 kg) e ideal 106,4 kg (−5 kg)."
+          ],
+          "- IBP em jejum, 4 semanas\n- Vitamina D: ataque 8 semanas, depois manutenção\n- Creatina 5 g/dia\n- Whey quando precisar\n- Proteína: ~150 g/dia\n- Pesar seg e sex (jejum, sem roupa)\n- Exames de sangue perto do retorno\n- Levar exames cardiológicos e ultrassom\n- Meta 4 semanas: −2 kg (mín.) a −5 kg (ideal)\n- Aguardar encaminhamento para psicoterapia\n- InBody: 111,4 kg · PGC 28,3 % · visceral 13"
+        ]
+      },
+      "consulta-retorno": {
+        "resumo": [
+          [
+            "Retorno em 4 semanas (por volta de 05/11/2026): reavaliar os resultados dos exames, a evolução do peso e definir os próximos passos. Confirme a data ao agendar."
+          ],
+          "- Reavaliar exames e peso\n- Definir próximos passos\n- Confirmar a data ao agendar"
+        ]
+      },
+      "consulta-urologia-2026-09-30": {
+        "resumo": [
+          [
+            "Receita simples (emitida em 30/09/2026, válida até 30/10/2026):\n1. Citrato de clomifeno 50 mg (30 comprimidos): 1 comprimido em dias alternados (segunda, quarta e sexta) por 60 dias.\n2. Anastrozol 1 mg (30 comprimidos): 1 comprimido às terças e quintas por 60 dias.\n\nSolicitação de exames de sangue (CID N39): testosterona total e livre, estradiol, FSH, LH, prolactina, TSH e T4 livre, SHBG, albumina, PSA total e PSA livre.",
+            "Receita simples (emitida em 30/09/2026, válida até 30/10/2026):\n1. Citrato de clomifeno 50 mg (30 comprimidos): 1 comprimido em dias alternados (segunda, quarta e sexta) por 60 dias.\n2. Anastrozol 1 mg (30 comprimidos): 1 comprimido às terças e quintas por 60 dias.\n\nSolicitação de exames de sangue (CID N39): testosterona total e livre, estradiol, FSH, LH, prolactina, TSH e T4 livre, SHBG, albumina, PSA total e PSA livre.\n\nPlano de tratamento: exérese de cisto. Orçamento da equipe cirúrgica: R$ 2.500,00 à vista ou até 3x de R$ 950,00, pago até 1 dia antes; internação coberta pelo plano, no Hospital Santa Cruz ou na Clínica Los Angeles. Orçamento válido por 30 dias (até 30/10/2026). Próximos passos: confirmação do tratamento, liberação da guia e agendamento do procedimento. Contatos: Cláudia (41) 99660-9864; Dr. Bruno Ferraz (43) 99143-0050."
+          ],
+          "- Clomifeno 50 mg: seg, qua e sex, 60 dias\n- Anastrozol 1 mg: ter e qui, 60 dias\n- Receita válida até 30/10\n- Exames de sangue: hormônios e PSA\n- Plano: exérese de cisto"
+        ]
+      },
+      "consulta-urologia-retorno": {
+        "resumo": [
+          [
+            "Retorno da consulta de 30/09/2026, com data a combinar. Levar os resultados dos exames de sangue (hormônios e PSA) pedidos nessa consulta."
+          ],
+          "- Levar exames de sangue (hormônios e PSA)"
+        ]
+      }
+    },
+    "pendencias": {
+      "agendar-retorno": {
+        "texto": [
+          [
+            "Agendar a consulta de retorno com o Dr. Fernando Teles (por volta de 05/11)"
+          ],
+          "Agendar retorno com Dr. Fernando (~05/11)"
+        ]
+      },
+      "pedir-exames": {
+        "texto": [
+          [
+            "Fazer os exames de sangue perto do retorno"
+          ],
+          "Exames de sangue perto do retorno"
+        ]
+      },
+      "separar-exames": {
+        "texto": [
+          [
+            "Separar os exames cardiológicos e a ultrassonografia abdominal para levar no retorno"
+          ],
+          "Separar exames cardiológicos e ultrassom"
+        ]
+      },
+      "confirmar-vitamina-d": {
+        "texto": [
+          [
+            "Conferir na receita a dose e a frequência da vitamina D e atualizar aqui"
+          ],
+          "Conferir dose da vitamina D na receita"
+        ]
+      },
+      "psicoterapia": {
+        "texto": [
+          [
+            "Aguardar indicação/encaminhamento para psicoterapia"
+          ],
+          "Aguardar encaminhamento para psicoterapia"
+        ]
+      },
+      "comprar-urologia": {
+        "texto": [
+          [
+            "Comprar o clomifeno e o anastrozol (a receita vale até 30/10/2026)"
+          ],
+          "Comprar clomifeno e anastrozol (receita até 30/10)"
+        ]
+      },
+      "inicio-urologia": {
+        "texto": [
+          [
+            "Confirmar o dia em que começou o clomifeno e o anastrozol e ajustar o início e o fim aqui"
+          ],
+          "Confirmar início do clomifeno e anastrozol"
+        ]
+      },
+      "exames-urologia": {
+        "texto": [
+          [
+            "Fazer os exames de sangue pedidos pelo urologista (hormônios e PSA)"
+          ],
+          "Exames de sangue do urologista"
+        ]
+      },
+      "exerese-confirmar": {
+        "texto": [
+          [
+            "Exérese de cisto: confirmar o tratamento com o Dr. Bruno (orçamento vale até 30/10/2026)"
+          ],
+          "Exérese: confirmar tratamento"
+        ]
+      },
+      "exerese-hospital": {
+        "texto": [
+          [
+            "Exérese de cisto: escolher o hospital (Hospital Santa Cruz ou Clínica Los Angeles)"
+          ],
+          "Exérese: escolher hospital"
+        ]
+      },
+      "exerese-guia": {
+        "texto": [
+          [
+            "Exérese de cisto: liberar a guia no plano de saúde"
+          ],
+          "Exérese: liberar guia"
+        ]
+      },
+      "exerese-agendar": {
+        "texto": [
+          [
+            "Exérese de cisto: agendar o procedimento"
+          ],
+          "Exérese: agendar"
+        ]
+      },
+      "exerese-pagar": {
+        "texto": [
+          [
+            "Exérese de cisto: pagar a equipe cirúrgica até 1 dia antes (R$ 2.500,00 à vista ou 3x de R$ 950,00)"
+          ],
+          "Exérese: pagar equipe (até 1 dia antes)"
+        ]
+      }
+    },
+    "procedimentos": {
+      "exerese-cisto": {
+        "local": [
+          [
+            "Hospital Santa Cruz ou Clínica Los Angeles (à escolha do paciente)"
+          ],
+          "Hospital Santa Cruz ou Clínica Los Angeles"
+        ],
+        "orcamento": [
+          [
+            "Equipe cirúrgica (honorários médicos e instrumentador): R$ 2.500,00 à vista ou até 3x de R$ 950,00, pago até 1 dia antes do procedimento.\nHospital: internação coberta pelo plano de saúde."
+          ],
+          "Equipe: R$ 2.500 à vista ou 3x R$ 950\nPagar até 1 dia antes\nHospital: plano de saúde"
+        ],
+        "observacao": [
+          [
+            "Plano de tratamento apresentado na consulta de 30/09/2026 (Dr. Bruno Bertoni Ferraz, CRM-PR 35.526, RQE 33.425). Orçamento válido por 30 dias.\nPróximos passos: 1) confirmação do tratamento; 2) liberação da guia; 3) agendamento do procedimento."
+          ],
+          "Orçamento de 30/09/2026"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "2026-10-peso-alvo-95",
+  "pessoa": "helio",
+  "descricao": "Peso alvo de 95 kg, informado em 08/10/2026; substitui a faixa de referência de peso do laudo da bioimpedância.",
+  "config": {
+    "peso": { "alvoKg": 95 }
+  }
+}

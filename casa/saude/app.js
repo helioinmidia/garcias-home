@@ -115,6 +115,35 @@
     return null;
   }
 
+  // Texto em tópicos: cada linha é um tópico ("- " opcional). Linhas curtas viram marcadores (etiquetas);
+  // se alguma for longa, vira lista com marcas.
+  function topicos(texto) {
+    var linhas = String(texto || '').split('\n').map(function (l) { return l.replace(/^\s*[-•·]\s*/, '').trim(); }).filter(Boolean);
+    if (!linhas.length) return null;
+    if (linhas.every(function (l) { return l.length <= 44; })) return h('div', { class: 'tags' }, linhas.map(function (l) { return h('span', { class: 'tag' }, l); }));
+    return h('ul', { class: 'topicos' }, linhas.map(function (l) { return h('li', null, l); }));
+  }
+
+  // Contador de doses: tomadas no total e, com período e dias definidos, quantas previstas e esquecidas.
+  function contaDoses(m) {
+    var tomadas = Object.keys(doc.tomadas || {}).filter(function (k) { return (doc.tomadas[k] || {})[m.id]; }).length;
+    var r = { tomadas: tomadas, total: null, esquecidas: 0 };
+    if ((m.frequencia !== 'diario' && m.frequencia !== 'semanal') || !m.inicio) return r;
+    var k = hoje(), ontem = somaDias(k, -1), total = 0, esquecidas = 0;
+    var fim = m.fim || null, limite = fim || k;
+    for (var d = m.inicio, n = 0; d <= limite && n < 1000; d = somaDias(d, 1), n++) {
+      if (!tomaEm(m, d)) continue;
+      total++;
+      if (d <= ontem && !tomou(m, d)) esquecidas++;
+    }
+    r.total = fim ? total : null;
+    r.esquecidas = esquecidas;
+    return r;
+  }
+  function textoDoses(c) {
+    return c.total != null ? c.tomadas + ' de ' + c.total + ' doses' : c.tomadas + (c.tomadas === 1 ? ' dose' : ' doses');
+  }
+
   // ---------- modalidades (especialidades) ----------
   // Ordem fixa da paleta validada (azul, laranja, verde-água…); a cor segue a modalidade, nunca a posição no filtro.
   var CORES_MOD = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)'];
@@ -243,6 +272,7 @@
   function cartaoHoje() {
     var k = hoje();
     var meds = doc.medicamentos.filter(function (m) { return tomaEm(m, k); });
+    var avulsos = doc.medicamentos.filter(function (m) { return m.frequencia === 'se-necessario' && ativoEm(m, k); });
     var c = add(cartao('hoje-sec', 'hoje-titulo'), cabecalho('Hoje', 'hoje-titulo', h('span', { class: 'mudo' }, dataLonga(k))));
     if (meds.length) {
       var feitos = meds.filter(function (m) { return tomou(m, k); }).length;
@@ -256,16 +286,14 @@
           var d = somaDias(k, -i);
           add(semana, h('i', { class: tomaEm(m, d) ? (tomou(m, d) ? 'sim' : '') : 'fora', title: dataDM(d) }));
         }
-        add(c, h('div', { class: 'tomada' + (sim ? ' feito' : ''), style: modalidade(m.modalidade) ? '--mod:' + corMod(m.modalidade) : null },
-          h('button', { type: 'button', class: 'check', role: 'checkbox', 'aria-checked': String(sim), 'aria-label': m.nome, html: ICONE_CHECK,
-            onclick: function () { grava('PUT', '/tomada/' + k + '/' + m.id, { tomado: !sim }); } }),
-          h('div', { class: 'txt' },
-            h('div', { class: 'nome' }, h('b', null, m.nome), m.dose ? ' · ' + m.dose : ''),
-            h('div', { class: 'item-linha' }, [m.quando || FREQ[m.frequencia], (modalidade(m.modalidade) || {}).nome].filter(Boolean).join(' · ')),
-            semana)));
+        add(c, linhaTomada(m, k, semana));
       });
     } else {
       add(c, h('p', { class: 'vazio' }, 'Nenhum medicamento com horário para hoje.'));
+    }
+    if (avulsos.length) {
+      add(c, h('p', { class: 'mudo', style: 'margin:12px 0 6px' }, 'Quando necessário'));
+      avulsos.forEach(function (m) { add(c, linhaTomada(m, k, null)); });
     }
     var aDefinir = doc.medicamentos.filter(function (m) { return m.frequencia === 'a-definir' && ativoEm(m, k); });
     if (aDefinir.length) {
@@ -278,6 +306,28 @@
     }
     if (doc.proteina.ativo && passaOuSem(doc.proteina)) add(c, blocoProteina());
     return c;
+  }
+
+  // Quando tomar: o texto da receita ou, sem ele, a frequência (com os dias, se for semanal).
+  function quandoDe(m) {
+    if (m.quando) return m.quando;
+    if (m.frequencia === 'semanal' && (m.diasDaSemana || []).length) return m.diasDaSemana.map(function (d) { return DIAS_CURTOS[d]; }).join(', ');
+    return FREQ[m.frequencia];
+  }
+  // Linha de remédio do cartão Hoje: botão de tomado, nome e o contador de doses ao lado.
+  function linhaTomada(m, k, semana) {
+    var sim = tomou(m, k);
+    var cont = contaDoses(m);
+    return h('div', { class: 'tomada' + (sim ? ' feito' : ''), style: modalidade(m.modalidade) ? '--mod:' + corMod(m.modalidade) : null },
+      h('button', { type: 'button', class: 'check', role: 'checkbox', 'aria-checked': String(sim), 'aria-label': m.nome, html: ICONE_CHECK,
+        onclick: function () { grava('PUT', '/tomada/' + k + '/' + m.id, { tomado: !sim }); } }),
+      h('div', { class: 'txt' },
+        h('div', { class: 'nome' }, h('b', null, m.nome), m.dose ? ' · ' + m.dose : ''),
+        h('div', { class: 'item-linha' }, [quandoDe(m), (modalidade(m.modalidade) || {}).nome].filter(Boolean).join(' · ')),
+        semana),
+      h('div', { class: 'doses', title: 'Doses tomadas' },
+        h('b', null, cont.tomadas), cont.total != null ? h('small', null, 'de ' + cont.total) : h('small', null, cont.tomadas === 1 ? 'dose' : 'doses'),
+        cont.esquecidas ? h('span', { class: 'chip ruim' }, cont.esquecidas + (cont.esquecidas === 1 ? ' esquecida' : ' esquecidas')) : null));
   }
 
   function blocoProteina() {
@@ -363,7 +413,7 @@
         h('p', { style: 'margin:6px 0 0' }, h('b', null, p.profissional), p.especialidade ? ' · ' + p.especialidade : (modalidade(p.modalidade) ? ' · ' + modalidade(p.modalidade).nome : '')),
         h('p', { class: 'mudo', style: 'margin:2px 0 0' }, p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : 'Data a definir', p.local ? ' · ' + p.local : ''),
         h('p', { style: 'margin:8px 0 0' }, h('span', { class: 'chip ' + (p.status === 'agendada' ? 'ok' : 'aviso') }, p.status === 'agendada' ? 'Agendada' : p.data ? 'A agendar: data aproximada' : 'A agendar')),
-        p.resumo ? h('p', { class: 'item-obs' }, p.resumo) : null,
+        p.resumo ? topicos(p.resumo) : null,
         h('div', { class: 'botoes' }, h('button', { type: 'button', class: 'btn', onclick: function () { editaItem('consultas', p); } }, p.status === 'a-agendar' ? 'Marcar data e hora' : 'Editar')));
     } else {
       add(b, h('p', { class: 'vazio' }, 'Nenhum retorno marcado.'),
@@ -374,7 +424,7 @@
     if (u) {
       add(b, h('details', { class: 'resumo' },
         h('summary', null, 'Última consulta: ' + (u.data ? dataCurta(u.data) : 'sem data') + ' · ' + u.profissional),
-        h('div', null, u.resumo || 'Sem resumo registrado.')));
+        u.resumo ? topicos(u.resumo) : h('div', null, 'Sem resumo registrado.')));
     }
     return b;
   }
@@ -515,6 +565,7 @@
       h('span', { class: 'acoes' },
         h('button', { type: 'button', class: 'btn', onclick: function () { editaAvaliacao(null, lista[lista.length - 1]); } }, 'Nova avaliação'))));
     var m = a.medidas || {}, f = a.faixas || {};
+    var alvo = doc.peso && doc.peso.alvoKg ? doc.peso.alvoKg : null; // peso alvo da pessoa: substitui a faixa do laudo
     var escolha = null;
     if (lista.length > 1) {
       escolha = h('select', { 'aria-label': 'Avaliação', onchange: function (ev) { avaliacaoVista = ev.target.value; desenha(); } },
@@ -529,16 +580,18 @@
     // Números de controle.
     var tiles = [
       m.pontuacao != null ? ['Pontuação', valorUn(m.pontuacao, '') + ' / 100', 'var(--s6)'] : null,
-      m.pesoIdeal != null ? ['Peso ideal', valorUn(m.pesoIdeal, 'kg'), 'var(--s1)'] : null,
+      alvo ? ['Peso alvo', valorUn(alvo, 'kg'), 'var(--s1)', m.peso != null ? (m.peso > alvo ? 'faltam ' + valorUn(Math.round((m.peso - alvo) * 10) / 10, 'kg') : 'alvo atingido') : null]
+        : m.pesoIdeal != null ? ['Peso ideal', valorUn(m.pesoIdeal, 'kg'), 'var(--s1)'] : null,
       m.controleGordura != null ? ['Controle de gordura', valorUn(m.controleGordura, 'kg'), 'var(--s2)'] : null,
       m.controleMuscular != null ? ['Controle muscular', valorUn(m.controleMuscular, 'kg'), 'var(--s3)'] : null,
     ].filter(Boolean);
-    if (tiles.length) add(c, h('div', { class: 'peso-topo' }, tiles.map(function (t) { return h('div', { class: 'num', style: '--t:' + t[2] }, h('small', null, t[0]), h('b', null, t[1])); })));
+    if (tiles.length) add(c, h('div', { class: 'peso-topo' }, tiles.map(function (t) { return h('div', { class: 'num', style: '--t:' + t[2] }, h('small', null, t[0]), h('b', null, t[1]), t[3] ? h('div', { class: 'mudo' }, t[3]) : null); })));
     // Barras: valor contra a faixa de referência do próprio laudo.
     var barras = h('div', { class: 'faixas' });
     METRICAS.forEach(function (d) {
       var v = m[d[0]];
       if (v == null) return;
+      if (d[0] === 'peso' && alvo) { add(barras, linhaAlvo(d, v, alvo, anterior)); return; }
       var fx = f[d[0]];
       var linha = h('div', { class: 'faixa' });
       var sit = null, cls = '';
@@ -591,8 +644,25 @@
     } else {
       add(c, h('p', { class: 'mudo', style: 'margin:12px 0 0' }, 'Lance a próxima avaliação em "Nova avaliação" para comparar a evolução.'));
     }
-    if (a.observacao) add(c, h('details', { class: 'resumo' }, h('summary', null, 'Observações e impedância'), h('div', null, a.observacao)));
+    if (a.observacao) add(c, h('details', { class: 'resumo' }, h('summary', null, 'Observações e impedância'), topicos(a.observacao)));
     return c;
+  }
+
+  // Peso contra o alvo da pessoa (sem a faixa de referência do laudo): marca do alvo e quanto falta.
+  function linhaAlvo(d, v, alvo, anterior) {
+    var ini = Math.min(v, alvo) - 5, fim = Math.max(v, alvo) + 5;
+    var pos = function (x) { return ((x - ini) / (fim - ini)) * 100; };
+    var falta = Math.round((v - alvo) * 10) / 10;
+    var dif = anterior && anterior.medidas && anterior.medidas.peso != null ? v - anterior.medidas.peso : null;
+    return h('div', { class: 'faixa' },
+      h('div', { class: 'faixa-nome' }, h('b', null, d[1]), h('small', null, 'alvo ' + valorUn(alvo, 'kg'))),
+      h('div', { class: 'faixa-trilho' },
+        h('span', { class: 'faixa-caminho', style: 'left:' + pos(Math.min(v, alvo)) + '%;width:' + Math.abs(pos(v) - pos(alvo)) + '%' }),
+        h('span', { class: 'faixa-alvo', style: 'left:' + pos(alvo) + '%', title: 'Alvo: ' + valorUn(alvo, 'kg') }),
+        h('span', { class: 'faixa-marca ' + (falta > 0 ? 'aviso' : 'ok'), style: 'left:' + pos(v) + '%', title: d[1] + ': ' + valorUn(v, 'kg') })),
+      h('div', { class: 'faixa-valor' }, h('b', null, valorUn(v, 'kg')),
+        dif != null && Math.abs(dif) > 1e-9 ? h('small', { class: 'mudo' }, '(' + (dif > 0 ? '+' : '−') + valorUn(Math.round(Math.abs(dif) * 100) / 100, '') + ')') : null,
+        h('span', { class: 'chip ' + (falta > 0 ? 'aviso' : 'ok') }, falta > 0 ? 'faltam ' + valorUn(falta, 'kg') : 'no alvo')));
   }
 
   // Avaliação nova (faixas e aparelho copiados da anterior) ou edição das medidas de uma existente.
@@ -646,9 +716,15 @@
       add(lista, h('li', null,
         h('div', null,
           h('div', { class: 'item-titulo' }, m.nome, h('span', { class: 'chip ' + sit[1] }, sit[0]), m.tipo === 'suplemento' ? h('span', { class: 'chip' }, 'Suplemento') : null, chipMod(m.modalidade)),
+          (function () {
+            var cont = contaDoses(m);
+            if (!cont.tomadas && cont.total == null && m.frequencia !== 'se-necessario') return null;
+            return h('div', { class: 'item-linha' }, h('span', { class: 'chip info' }, textoDoses(cont)),
+              cont.esquecidas ? h('span', { class: 'chip ruim', style: 'margin-left:6px' }, cont.esquecidas + (cont.esquecidas === 1 ? ' esquecida' : ' esquecidas')) : null);
+          })(),
           h('div', { class: 'item-linha' }, [m.dose, m.quando, freq].filter(Boolean).join(' · ')),
           periodo ? h('div', { class: 'item-linha' }, periodo) : null,
-          m.observacao ? h('div', { class: 'item-obs' }, m.observacao) : null),
+          m.observacao ? topicos(m.observacao) : null),
         botoesItem('medicamentos', m)));
     });
     add(c, lista);
@@ -668,7 +744,7 @@
         h('div', null,
           h('div', { class: 'item-titulo' }, e.nome, h('span', { class: 'chip ' + st[1] }, st[0]), chipMod(e.modalidade)),
           e.data || e.local ? h('div', { class: 'item-linha' }, [e.data ? dataCurta(e.data) : '', e.local].filter(Boolean).join(' · ')) : null,
-          e.observacao ? h('div', { class: 'item-obs' }, e.observacao) : null),
+          e.observacao ? topicos(e.observacao) : null),
         botoesItem('exames', e)));
     });
     add(c, lista);
@@ -710,9 +786,9 @@
         add(bloco, h('p', { style: 'margin:8px 0 0' }, h('span', { class: 'chip ' + (faltam < 0 ? 'ruim' : faltam <= 7 ? 'aviso' : 'info') },
           faltam < 0 ? 'Orçamento vencido em ' + dataCurta(p.validadeOrcamento) : 'Orçamento vale até ' + dataCurta(p.validadeOrcamento) + (faltam === 0 ? ' (hoje)' : ' · faltam ' + faltam + (faltam === 1 ? ' dia' : ' dias')))));
       }
-      if (p.orcamento) add(bloco, h('div', { class: 'item-obs proc-orc' }, p.orcamento));
+      if (p.orcamento) add(bloco, h('div', { class: 'proc-orc' }, topicos(p.orcamento)));
       if (p.contatos) add(bloco, h('div', { class: 'proc-contatos' }, h('b', null, 'Contatos'), comTelefones(p.contatos)));
-      if (p.observacao) add(bloco, h('details', { class: 'resumo' }, h('summary', null, 'Plano e observações'), h('div', null, p.observacao)));
+      if (p.observacao) add(bloco, topicos(p.observacao));
       var proxima = p.status === 'cancelado' || p.status === 'realizado' ? null : ETAPAS[idx + 1];
       add(bloco, h('div', { class: 'botoes' },
         proxima ? h('button', { type: 'button', class: 'btn primario', onclick: function () {
@@ -738,7 +814,7 @@
         h('div', null,
           h('div', { class: 'item-titulo' }, q.profissional, h('span', { class: 'chip ' + st[1] }, st[0]), chipMod(q.modalidade)),
           h('div', { class: 'item-linha' }, [q.data ? dataCurta(q.data) + (q.hora ? ' ' + q.hora : '') : 'Sem data', q.especialidade, q.local].filter(Boolean).join(' · ')),
-          q.resumo ? h('details', { class: 'resumo' }, h('summary', null, q.status === 'realizada' ? 'Resumo e condutas' : 'Observações'), h('div', null, q.resumo)) : null),
+          q.resumo ? h('details', { class: 'resumo' }, h('summary', null, q.status === 'realizada' ? 'Resumo e condutas' : 'Observações'), topicos(q.resumo)) : null),
         botoesItem('consultas', q)));
     });
     add(c, lista);
@@ -795,7 +871,7 @@
           m.local ? h('div', { class: 'item-linha' }, m.local) : null,
           m.telefone ? h('div', { class: 'item-linha' }, h('a', { href: 'tel:' + m.telefone.replace(/[^\d+]/g, '') }, m.telefone)) : null,
           resumo ? h('div', { class: 'item-linha' }, resumo) : null,
-          m.observacao ? h('div', { class: 'item-obs' }, m.observacao) : null),
+          m.observacao ? topicos(m.observacao) : null),
         botoesItem('modalidades', m)));
     });
     add(c, lista);
@@ -1038,6 +1114,7 @@
       ['instrucoes', 'Como pesar', 'texto'],
       ['inicio', 'Início do período', 'data', { par: true }], ['prazo', 'Prazo da meta', 'data', { par: true }],
       ['metaMinimaKg', 'Meta mínima (kg a perder)', 'numero', { par: true }], ['metaIdealKg', 'Meta ideal (kg a perder)', 'numero', { par: true }],
+      ['alvoKg', 'Peso alvo (kg)', 'numero', { dica: 'Peso de longo prazo; na bioimpedância substitui a faixa de referência do laudo. Vazio ou 0 = sem alvo.' }],
       ['modalidade', 'Modalidade', 'modalidade'],
     ], cfg, function (d) { return grava('PUT', '/config/peso', d); });
   }
