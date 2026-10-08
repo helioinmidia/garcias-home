@@ -183,6 +183,33 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 textarea { min-height: 90px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
 
+/* Composição corporal: barras com a faixa de referência. */
+.comp-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 14px; }
+.comp-topo > div:first-child { flex: 1; min-width: 200px; }
+.comp-topo select { width: auto; }
+.faixas { display: flex; flex-direction: column; }
+.faixa { display: grid; grid-template-columns: minmax(150px, 1.1fr) 2fr 230px; gap: 6px 16px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); }
+.faixa:first-child { border-top: none; }
+.faixa-nome b { display: block; font-size: 14px; }
+.faixa-nome small { color: var(--muted); font-size: 12px; }
+.faixa-trilho { position: relative; height: 14px; border-radius: 999px; background: var(--soft); }
+.faixa-normal { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: var(--ok-soft); box-shadow: inset 0 0 0 1px var(--ok); opacity: 0.9; }
+.faixa-marca { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 3px var(--card); }
+.faixa-marca.aviso { background: var(--warn); }
+.faixa-marca.ok { background: var(--ok); }
+.faixa-marca.info { background: var(--info); }
+.faixa-valor { display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.faixa-valor b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.tabela-rolagem { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.tabela td { padding: 8px 10px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabela tr:last-child td { border-bottom: none; }
+@media (max-width: 640px) {
+  .faixa { grid-template-columns: 1fr auto; }
+  .faixa-trilho { grid-column: 1 / -1; grid-row: 2; }
+}
+
 /* Pendências. */
 .pend { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-top: 1px solid var(--line); }
 .pend:first-of-type { border-top: none; }

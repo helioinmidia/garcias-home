@@ -177,6 +177,10 @@ Cada aba tem:
 - **Medicamentos, exames, consultas e pendências:** cada item pode ser adicionado, editado e apagado.
   Um medicamento tem período (início e fim), frequência (todos os dias, dias da semana, quando
   necessário ou a definir) e dose. A consulta guarda o resumo e as condutas.
+- **Composição corporal:** avaliações de bioimpedância (InBody), com cada medida numa barra contra a faixa
+  de referência do próprio laudo, os números de controle (peso ideal, controle de gordura e muscular), a
+  distribuição por segmento e a evolução entre avaliações. "Nova avaliação" copia aparelho, local e faixas
+  da anterior.
 - **Documentos:** receitas, pedidos e resultados de exames, em PDF ou foto, até 15 MB cada. Ficam no Pi
   em `dados/saude/arquivos/<pessoa>/` e abrem no próprio navegador.
 - **Plano alimentar**, quando houver um.

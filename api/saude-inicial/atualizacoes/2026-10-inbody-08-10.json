@@ -1,0 +1,80 @@
+{
+  "id": "2026-10-inbody-08-10",
+  "pessoa": "helio",
+  "descricao": "Bioimpedância InBody 120 feita na QOR Médica em 08/10/2026, 14:44 (Medicina Esportiva).",
+  "itens": {
+    "composicao": [
+      {
+        "id": "inbody-2026-10-08",
+        "modalidade": "medicina-esportiva",
+        "data": "2026-10-08",
+        "hora": "14:44",
+        "aparelho": "InBody 120",
+        "local": "QOR Médica",
+        "medidas": {
+          "peso": 111.4,
+          "agua": 58.5,
+          "proteina": 15.9,
+          "minerais": 5.46,
+          "gordura": 31.6,
+          "mme": 46.0,
+          "mlg": 79.8,
+          "imc": 34.0,
+          "pgc": 28.3,
+          "tmb": 2094,
+          "rcq": 0.96,
+          "visceral": 13,
+          "obesidade": 155,
+          "pontuacao": 81,
+          "pesoIdeal": 93.9,
+          "controlePeso": -17.5,
+          "controleGordura": -17.5,
+          "controleMuscular": 0.0
+        },
+        "faixas": {
+          "peso": [61.3, 82.9],
+          "agua": [40.5, 49.5],
+          "proteina": [10.9, 13.3],
+          "minerais": [3.75, 4.58],
+          "gordura": [8.7, 17.3],
+          "mme": [31.0, 37.8],
+          "mlg": [55.1, 67.4],
+          "imc": [18.5, 25.0],
+          "pgc": [10.0, 20.0],
+          "tmb": [2210, 2619],
+          "rcq": [0.80, 0.90],
+          "visceral": [1, 9],
+          "obesidade": [90, 110]
+        },
+        "segmentar": {
+          "magra": {
+            "bracoEsquerdo": { "kg": 4.81, "pct": 128.5 },
+            "bracoDireito": { "kg": 4.91, "pct": 130.7 },
+            "tronco": { "kg": 35.2, "pct": 113.7 },
+            "pernaEsquerda": { "kg": 12.01, "pct": 105.5 },
+            "pernaDireita": { "kg": 11.71, "pct": 103.5 }
+          },
+          "gordura": {
+            "bracoEsquerdo": { "kg": 2.2, "pct": 341.7 },
+            "bracoDireito": { "kg": 2.2, "pct": 333.7 },
+            "tronco": { "kg": 17.6, "pct": 386.5 },
+            "pernaEsquerda": { "kg": 4.0, "pct": 215.9 },
+            "pernaDireita": { "kg": 4.0, "pct": 216.6 }
+          }
+        },
+        "observacao": "Altura 181 cm, 38 anos. Faixas de referência do próprio relatório; IMC normal 18,5–25,0 e PGC normal 10–20 % pelas barras do laudo.\nImpedância (Ω) — 20 kHz: braço D 249,8 · braço E 258,1 · tronco 20,4 · perna D 214,6 · perna E 204,2; 100 kHz: 216,2 · 225,1 · 17,2 · 185,9 · 176,8."
+      }
+    ],
+    "exames": [
+      {
+        "id": "inbody-2026-10-08",
+        "modalidade": "medicina-esportiva",
+        "nome": "Bioimpedância (InBody 120)",
+        "status": "feito",
+        "data": "2026-10-08",
+        "local": "QOR Médica",
+        "observacao": "Peso 111,4 kg · massa de gordura 31,6 kg (PGC 28,3 %) · massa muscular esquelética 46,0 kg · IMC 34,0 · gordura visceral nível 13 · pontuação 81/100. Detalhes no cartão Composição corporal."
+      }
+    ]
+  }
+}

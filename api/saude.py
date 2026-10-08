@@ -13,7 +13,8 @@ pessoa (fica anotado em "migracoes"), sem apagar nada do que foi registrado na t
   GET    /status                                   -> {"ok": true}
   GET    /pessoas                                  -> {"pessoas": [{id, nome}]}
   GET    /pessoa/<p>                               -> documento inteiro da pessoa (com "revisao")
-  PUT    /pessoa/<p>/<colecao>/<item>              <- item (modalidades, medicamentos, exames, consultas, pendencias)
+  PUT    /pessoa/<p>/<colecao>/<item>              <- item (modalidades, medicamentos, exames, consultas, pendencias,
+                                                     composicao = avaliações de composição corporal, ex.: InBody)
   DELETE /pessoa/<p>/<colecao>/<item>
   PUT    /pessoa/<p>/tomada/AAAA-MM-DD/<med>       <- {"tomado": bool}
   PUT    /pessoa/<p>/peso/AAAA-MM-DD               <- {"kg": 82.4, "nota": "..."}
@@ -53,7 +54,7 @@ TIPOS_ARQUIVO = {"application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "pn
 ID = r"[a-z0-9][a-z0-9-]{0,63}"
 DATA = r"\d{4}-\d{2}-\d{2}"
 ROTA_PESSOA = re.compile(rf"^/pessoa/({ID})$")
-ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias)/({ID})$")
+ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias|composicao)/({ID})$")
 ROTA_DOCUMENTO = re.compile(rf"^/pessoa/({ID})/documento/({ID})$")
 ROTA_TOMADA = re.compile(rf"^/pessoa/({ID})/tomada/({DATA})/({ID})$")
 ROTA_PESO = re.compile(rf"^/pessoa/({ID})/peso/({DATA})$")
@@ -144,12 +145,69 @@ def dias_semana(nome, valor):
     return sorted(set(valor))
 
 
-def numero(minimo, maximo):
+def numero(minimo, maximo, casas=1):
     def v(nome, valor):
         if isinstance(valor, bool) or not isinstance(valor, (int, float)) or not (minimo <= valor <= maximo):
             raise ErroPedido(f'"{nome}" deve ser um número entre {minimo} e {maximo}')
-        return round(float(valor), 1)
+        return round(float(valor), casas)
     return v
+
+
+# Composição corporal (bioimpedância): medidas conhecidas, com a unidade de cada uma.
+MEDIDAS = {
+    "peso": "kg", "agua": "L", "proteina": "kg", "minerais": "kg", "gordura": "kg", "mme": "kg", "mlg": "kg",
+    "imc": "kg/m²", "pgc": "%", "tmb": "kcal", "rcq": "", "visceral": "", "obesidade": "%", "pontuacao": "pontos",
+    "pesoIdeal": "kg", "controlePeso": "kg", "controleGordura": "kg", "controleMuscular": "kg",
+}
+SEGMENTOS = ("bracoEsquerdo", "bracoDireito", "tronco", "pernaEsquerda", "pernaDireita")
+
+
+def medidas(nome, valor):
+    if valor is None:
+        return {}
+    if not isinstance(valor, dict):
+        raise ErroPedido(f'"{nome}" deve ser um objeto')
+    saida = {}
+    for chave, v in valor.items():
+        if chave not in MEDIDAS:
+            raise ErroPedido(f'"{nome}.{chave}" não é uma medida conhecida')
+        if v in (None, ""):
+            continue
+        saida[chave] = numero(-1000, 10000, 3)(f"{nome}.{chave}", v)
+    return saida
+
+
+def faixas(nome, valor):
+    if valor is None:
+        return {}
+    if not isinstance(valor, dict):
+        raise ErroPedido(f'"{nome}" deve ser um objeto')
+    saida = {}
+    for chave, par in valor.items():
+        if chave not in MEDIDAS:
+            raise ErroPedido(f'"{nome}.{chave}" não é uma medida conhecida')
+        if not (isinstance(par, list) and len(par) == 2):
+            raise ErroPedido(f'"{nome}.{chave}" deve ser [mínimo, máximo]')
+        saida[chave] = [numero(-1000, 10000, 3)(f"{nome}.{chave}", par[0]), numero(-1000, 10000, 3)(f"{nome}.{chave}", par[1])]
+    return saida
+
+
+def segmentar(nome, valor):
+    """{"magra"|"gordura": {segmento: {"kg": n, "pct": n}}} (porcentagem em relação ao ideal)."""
+    if valor is None:
+        return {}
+    if not isinstance(valor, dict):
+        raise ErroPedido(f'"{nome}" deve ser um objeto')
+    saida = {}
+    for tipo, partes in valor.items():
+        if tipo not in ("magra", "gordura") or not isinstance(partes, dict):
+            raise ErroPedido(f'"{nome}.{tipo}" deve ser "magra" ou "gordura", com os segmentos')
+        saida[tipo] = {}
+        for seg, med in partes.items():
+            if seg not in SEGMENTOS or not isinstance(med, dict):
+                raise ErroPedido(f'"{nome}.{tipo}.{seg}" não é um segmento conhecido')
+            saida[tipo][seg] = {k: numero(0, 1000, 3)(f"{nome}.{tipo}.{seg}.{k}", med.get(k)) for k in ("kg", "pct")}
+    return saida
 
 
 ESQUEMAS = {
@@ -191,6 +249,17 @@ ESQUEMAS = {
         "status": opcao("a-agendar", "agendada", "realizada", "cancelada"),
         "resumo": texto(6000),
     },
+    "composicao": {
+        "modalidade": id_ou_vazio,
+        "data": data_ou_vazio,
+        "hora": hora_ou_vazio,
+        "aparelho": texto(80),
+        "local": texto(160),
+        "medidas": medidas,
+        "faixas": faixas,
+        "segmentar": segmentar,
+        "observacao": texto(2000),
+    },
     "pendencias": {
         "modalidade": id_ou_vazio,
         "texto": texto(300, True),
@@ -204,6 +273,7 @@ PADROES = {
     "exames": {"status": "pendente"},
     "consultas": {"status": "agendada"},
     "pendencias": {},
+    "composicao": {},
 }
 CONFIG = {
     "peso": {

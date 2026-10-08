@@ -153,7 +153,9 @@
     var mostraPeso = doc.peso.ativo && passaOuSem(doc.peso);
     var mostraPlano = doc.plano && passaOuSem(doc.plano);
     var secoes = [['hoje-sec', 'Hoje'], ['prox-sec', 'Próximas consultas'], ['mod-sec', 'Modalidades']];
+    var mostraComp = (doc.composicao || []).some(passa);
     if (mostraPeso) secoes.push(['peso-sec', 'Peso']);
+    if (mostraComp) secoes.push(['comp-sec', 'Composição corporal']);
     secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências'], ['docs-sec', 'Documentos']);
     if (mostraPlano) secoes.push(['plano-sec', 'Plano alimentar']);
     var nav = $('secoes');
@@ -167,6 +169,7 @@
       barraFiltro(),
       h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), cartaoModalidades())),
       mostraPeso ? cartaoPeso() : null,
+      mostraComp ? cartaoComposicao() : null,
       h('div', { class: 'grade' }, cartaoMedicamentos(), cartaoExames()),
       h('div', { class: 'grade' }, cartaoConsultas(), h('div', { class: 'coluna' }, cartaoPendencias(), cartaoDocumentos())),
       mostraPlano ? cartaoPlano() : null
@@ -192,6 +195,7 @@
     'prox-consulta': ['var(--s1)', '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h2M14 14h2M8 18h2"/>'],
     'mod-titulo': ['var(--s6)', '<path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15v1a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>'],
     'peso-titulo': ['var(--s3)', '<circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.9 1.5L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.9-2.5L19.4 9.5A2 2 0 0 0 17.5 8Z"/>'],
+    'comp-titulo': ['var(--s5)', '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
     'meds-titulo': ['var(--s5)', '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>'],
     'exames-titulo': ['var(--s4)', '<path d="M14.5 2v17.5a2.5 2.5 0 0 1-5 0V2"/><path d="M8.5 2h7M14.5 16h-5"/>'],
     'consultas-titulo': ['var(--s1)', '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>'],
@@ -440,6 +444,151 @@
       svg += '<circle class="alvo" r="14" cx="' + x(r.data).toFixed(1) + '" cy="' + y(r.kg).toFixed(1) + '"><title>' + dataCurta(r.data) + ': ' + kg(r.kg) + '</title></circle>';
     });
     return h('div', { html: svg + '</svg>' });
+  }
+
+  // ---------- composição corporal (bioimpedância) ----------
+  // [chave, nome, unidade, qual lado é melhor: 'menor', 'maior' ou '' (neutro)]
+  var METRICAS = [
+    ['peso', 'Peso', 'kg', 'menor'],
+    ['mme', 'Massa muscular esquelética', 'kg', 'maior'],
+    ['gordura', 'Massa de gordura', 'kg', 'menor'],
+    ['pgc', 'Gordura corporal (PGC)', '%', 'menor'],
+    ['imc', 'IMC', 'kg/m²', 'menor'],
+    ['visceral', 'Gordura visceral', 'nível', 'menor'],
+    ['rcq', 'Relação cintura-quadril', '', 'menor'],
+    ['tmb', 'Taxa metabólica basal', 'kcal', 'maior'],
+    ['mlg', 'Massa livre de gordura', 'kg', 'maior'],
+    ['agua', 'Água corporal total', 'L', ''],
+    ['proteina', 'Proteína', 'kg', ''],
+    ['minerais', 'Minerais', 'kg', ''],
+  ];
+  var EXTRAS = [['pontuacao', 'Pontuação', 'pontos'], ['obesidade', 'Grau de obesidade', '%'], ['pesoIdeal', 'Peso ideal', 'kg'],
+    ['controlePeso', 'Controle de peso', 'kg'], ['controleGordura', 'Controle de gordura', 'kg'], ['controleMuscular', 'Controle muscular', 'kg']];
+  var SEGMENTOS = [['bracoEsquerdo', 'Braço esquerdo'], ['bracoDireito', 'Braço direito'], ['tronco', 'Tronco'], ['pernaEsquerda', 'Perna esquerda'], ['pernaDireita', 'Perna direita']];
+  function numBR(v, casas) { return v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas }); }
+  function casasDe(v) { var t = String(v).split('.')[1]; return t ? Math.min(2, t.length) : 0; }
+  // kg, L, % e IMC sempre com uma casa (46,0 kg), como no laudo; kcal, nível e pontos sem casas.
+  function valorUn(v, un) {
+    var casas = casasDe(v);
+    if (['kg', 'L', '%', 'kg/m²'].indexOf(un) >= 0) casas = Math.max(1, casas);
+    return numBR(v, casas) + (un ? ' ' + un : '');
+  }
+  // Faixa com as mesmas casas decimais do valor e dos limites (0,80–0,90; 31,0–37,8 kg).
+  function faixaTexto(fx, v, un) {
+    var cs = Math.max(casasDe(fx[0]), casasDe(fx[1]), casasDe(v), ['kg', 'L', '%', 'kg/m²'].indexOf(un) >= 0 ? 1 : 0);
+    return numBR(fx[0], cs) + '–' + numBR(fx[1], cs) + (un ? ' ' + un : '');
+  }
+  var avaliacaoVista = null; // id da avaliação escolhida no cartão
+
+  function cartaoComposicao() {
+    var lista = (doc.composicao || []).filter(passa).slice().sort(function (a, b) { return ((a.data || '') + (a.hora || '')) < ((b.data || '') + (b.hora || '')) ? -1 : 1; });
+    var a = lista.filter(function (x) { return x.id === avaliacaoVista; })[0] || lista[lista.length - 1];
+    var anterior = lista[lista.indexOf(a) - 1] || null;
+    var c = add(cartao('comp-sec', 'comp-titulo'), cabecalho('Composição corporal', 'comp-titulo',
+      h('span', { class: 'acoes' },
+        h('button', { type: 'button', class: 'btn', onclick: function () { editaAvaliacao(null, lista[lista.length - 1]); } }, 'Nova avaliação'))));
+    var m = a.medidas || {}, f = a.faixas || {};
+    var escolha = null;
+    if (lista.length > 1) {
+      escolha = h('select', { 'aria-label': 'Avaliação', onchange: function (ev) { avaliacaoVista = ev.target.value; desenha(); } },
+        lista.slice().reverse().map(function (x) { return h('option', { value: x.id, selected: x.id === a.id }, dataCurta(x.data) + (x.aparelho ? ' · ' + x.aparelho : '')); }));
+    }
+    add(c, h('div', { class: 'comp-topo' },
+      h('div', null,
+        h('div', { class: 'item-titulo' }, [a.aparelho || 'Avaliação', a.data ? dataCurta(a.data) + (a.hora ? ' ' + a.hora : '') : ''].filter(Boolean).join(' · '), chipMod(a.modalidade)),
+        a.local ? h('div', { class: 'item-linha' }, a.local) : null),
+      escolha,
+      h('button', { type: 'button', class: 'btn mini', onclick: function () { editaAvaliacao(a); } }, 'Editar')));
+    // Números de controle.
+    var tiles = [
+      m.pontuacao != null ? ['Pontuação', valorUn(m.pontuacao, '') + ' / 100', 'var(--s6)'] : null,
+      m.pesoIdeal != null ? ['Peso ideal', valorUn(m.pesoIdeal, 'kg'), 'var(--s1)'] : null,
+      m.controleGordura != null ? ['Controle de gordura', valorUn(m.controleGordura, 'kg'), 'var(--s2)'] : null,
+      m.controleMuscular != null ? ['Controle muscular', valorUn(m.controleMuscular, 'kg'), 'var(--s3)'] : null,
+    ].filter(Boolean);
+    if (tiles.length) add(c, h('div', { class: 'peso-topo' }, tiles.map(function (t) { return h('div', { class: 'num', style: '--t:' + t[2] }, h('small', null, t[0]), h('b', null, t[1])); })));
+    // Barras: valor contra a faixa de referência do próprio laudo.
+    var barras = h('div', { class: 'faixas' });
+    METRICAS.forEach(function (d) {
+      var v = m[d[0]];
+      if (v == null) return;
+      var fx = f[d[0]];
+      var linha = h('div', { class: 'faixa' });
+      var sit = null, cls = '';
+      var trilho = h('div', { class: 'faixa-trilho' });
+      if (fx) {
+        // Escala medida em larguras da faixa: uma à esquerda, duas à direita. Assim a distância do ponto até a
+        // faixa diz o quanto a medida está fora dela, e as barras são comparáveis entre si.
+        var larg = (fx[1] - fx[0]) || 1;
+        var ini = Math.max(0, fx[0] - larg), fim = fx[1] + 2 * larg;
+        var pos = function (x) { return Math.max(0, Math.min(100, ((x - ini) / (fim - ini)) * 100)); };
+        sit = v < fx[0] ? 'Abaixo' : v > fx[1] ? 'Acima' : 'Normal';
+        cls = sit === 'Normal' ? 'ok' : (sit === 'Acima' && d[3] === 'menor') || (sit === 'Abaixo' && d[3] === 'maior') ? 'aviso' : 'info';
+        add(trilho,
+          h('span', { class: 'faixa-normal', style: 'left:' + pos(fx[0]) + '%;width:' + (pos(fx[1]) - pos(fx[0])) + '%', title: 'Referência: ' + faixaTexto(fx, v, d[2]) }),
+          h('span', { class: 'faixa-marca ' + cls, style: 'left:' + pos(v) + '%', title: d[1] + ': ' + valorUn(v, d[2]) }));
+      }
+      var dif = anterior && anterior.medidas && anterior.medidas[d[0]] != null ? v - anterior.medidas[d[0]] : null;
+      add(linha,
+        h('div', { class: 'faixa-nome' }, h('b', null, d[1]), fx ? h('small', null, 'ref. ' + faixaTexto(fx, v, d[2])) : null),
+        trilho,
+        h('div', { class: 'faixa-valor' }, h('b', null, valorUn(v, d[2])),
+          dif != null && Math.abs(dif) > 1e-9 ? h('small', { class: 'mudo' }, '(' + (dif > 0 ? '+' : '−') + valorUn(Math.round(Math.abs(dif) * 100) / 100, '') + ')') : null,
+          sit ? h('span', { class: 'chip ' + cls }, sit) : null));
+      add(barras, linha);
+    });
+    add(c, h('h3', null, 'Medidas e faixas de referência'), barras,
+      h('p', { class: 'mudo', style: 'margin:6px 0 0' }, 'A faixa clara é a referência do próprio laudo; o ponto é o valor medido.' + (anterior ? ' Entre parênteses, a diferença para ' + dataCurta(anterior.data) + '.' : '')));
+    // Segmentar.
+    var sg = a.segmentar || {};
+    if (sg.magra || sg.gordura) {
+      var tabela = h('table', { class: 'tabela' },
+        h('thead', null, h('tr', null, h('th', null, 'Segmento'), h('th', null, 'Massa magra'), h('th', null, 'Gordura'))),
+        h('tbody', null, SEGMENTOS.map(function (sgm) {
+          var mg = (sg.magra || {})[sgm[0]], gd = (sg.gordura || {})[sgm[0]];
+          return h('tr', null, h('td', null, sgm[1]),
+            h('td', null, mg ? valorUn(mg.kg, 'kg') + ' · ' + numBR(mg.pct, 1) + ' %' : '—'),
+            h('td', null, gd ? valorUn(gd.kg, 'kg') + ' · ' + numBR(gd.pct, 1) + ' %' : '—'));
+        })));
+      add(c, h('h3', null, 'Distribuição por segmento'), h('div', { class: 'tabela-rolagem' }, tabela),
+        h('p', { class: 'mudo', style: 'margin:6px 0 0' }, 'A porcentagem compara cada segmento com o ideal para a altura e o peso (100 % = ideal).'));
+    }
+    // Evolução entre avaliações.
+    if (lista.length > 1) {
+      var cols = [['peso', 'Peso', 'kg'], ['mme', 'Músculo', 'kg'], ['gordura', 'Gordura', 'kg'], ['pgc', 'PGC', '%'], ['visceral', 'Visceral', '']];
+      add(c, h('h3', null, 'Evolução'), h('div', { class: 'tabela-rolagem' }, h('table', { class: 'tabela' },
+        h('thead', null, h('tr', null, h('th', null, 'Data'), cols.map(function (k) { return h('th', null, k[1]); }))),
+        h('tbody', null, lista.slice().reverse().map(function (x) {
+          return h('tr', null, h('td', null, dataCurta(x.data)), cols.map(function (k) { var v = (x.medidas || {})[k[0]]; return h('td', null, v != null ? valorUn(v, k[2]) : '—'); }));
+        })))));
+    } else {
+      add(c, h('p', { class: 'mudo', style: 'margin:12px 0 0' }, 'Lance a próxima avaliação em "Nova avaliação" para comparar a evolução.'));
+    }
+    if (a.observacao) add(c, h('details', { class: 'resumo' }, h('summary', null, 'Observações e impedância'), h('div', null, a.observacao)));
+    return c;
+  }
+
+  // Avaliação nova (faixas e aparelho copiados da anterior) ou edição das medidas de uma existente.
+  function editaAvaliacao(item, modelo) {
+    var base = item || { data: hoje(), hora: '', aparelho: (modelo && modelo.aparelho) || '', local: (modelo && modelo.local) || '',
+      modalidade: filtro !== 'todas' ? filtro : (modelo && modelo.modalidade) || '', medidas: {}, faixas: (modelo && modelo.faixas) || {}, segmentar: {}, observacao: '' };
+    var valores = Object.assign({}, base, base.medidas);
+    var campos = [
+      ['modalidade', 'Modalidade', 'modalidade'],
+      ['data', 'Data', 'data', { par: true }], ['hora', 'Hora', 'hora', { par: true }],
+      ['aparelho', 'Aparelho', 'texto', { par: true, dica: 'Ex.: InBody 120' }], ['local', 'Local', 'texto', { par: true }],
+    ];
+    METRICAS.concat(EXTRAS).forEach(function (d, i, arr) { campos.push([d[0], d[1] + (d[2] ? ' (' + d[2] + ')' : ''), 'numeroOpcional', { par: true }]); });
+    campos.push(['observacao', 'Observações', 'textoLongo']);
+    abreDialogo(item ? 'Editar avaliação' : 'Nova avaliação de composição corporal', campos, valores, function (dados) {
+      var med = {};
+      METRICAS.concat(EXTRAS).forEach(function (d) { if (dados[d[0]] != null) med[d[0]] = dados[d[0]]; });
+      var corpo = { modalidade: dados.modalidade, data: dados.data, hora: dados.hora, aparelho: dados.aparelho, local: dados.local,
+        medidas: med, faixas: base.faixas || {}, segmentar: base.segmentar || {}, observacao: dados.observacao };
+      var id = item ? item.id : novoId('avaliacao-' + (dados.data || hoje()));
+      avaliacaoVista = id;
+      return grava('PUT', '/composicao/' + id, corpo);
+    }, item ? function () { avaliacaoVista = null; grava('DELETE', '/composicao/' + item.id); } : null);
   }
 
   function botaoAdd(colecao, rotulo) {
@@ -712,7 +861,7 @@
     } else if (tipo === 'modalidade') {
       input = seletorModalidade(nome, valor);
       if (!modalidades().length) op = { dica: 'Cadastre as modalidades no cartão Modalidades.' };
-    } else if (tipo === 'numero') {
+    } else if (tipo === 'numero' || tipo === 'numeroOpcional') {
       input = h('input', { name: nome, type: 'text', inputmode: 'decimal', autocomplete: 'off' });
       input.value = valor != null ? String(valor).replace('.', ',') : '';
     } else {
@@ -758,6 +907,10 @@
         if (c[2] === 'dias') dados[c[0]] = Array.prototype.filter.call(form.querySelectorAll('input[name="' + c[0] + '"]'), function (x) { return x.checked; }).map(function (x) { return +x.value; });
         else if (c[2] === 'check') dados[c[0]] = form.elements[c[0]].checked;
         else if (c[2] === 'numero') dados[c[0]] = parseFloat(String(form.elements[c[0]].value).replace(',', '.')) || 0;
+        else if (c[2] === 'numeroOpcional') {
+          var bruto = String(form.elements[c[0]].value).trim().replace(',', '.');
+          dados[c[0]] = bruto === '' || isNaN(parseFloat(bruto)) ? null : parseFloat(bruto);
+        }
         else dados[c[0]] = form.elements[c[0]].value;
       });
       var faltando = campos.filter(function (c) { return c[3] && c[3].obrigatorio && !String(dados[c[0]]).trim(); });
