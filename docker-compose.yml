@@ -47,6 +47,9 @@ services:
     volumes:
       - ./api:/app:ro
       - ./dados:/dados
+      # A imagem alpine não traz os fusos horários: sem eles, TZ é ignorado e a data das pesagens do
+      # Apple Saúde (que podem chegar em UTC) cairia no dia errado à noite.
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
     environment:
       - DADOS_DIR=/dados/saude
       - INICIAL_DIR=/app/saude-inicial

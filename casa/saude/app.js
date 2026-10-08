@@ -106,7 +106,7 @@
   }
   function registrosPeso() {
     var r = doc.peso.registros || {};
-    return Object.keys(r).sort().map(function (k) { return { data: k, kg: r[k].kg, nota: r[k].nota }; });
+    return Object.keys(r).sort().map(function (k) { return { data: k, kg: r[k].kg, nota: r[k].nota, fonte: r[k].fonte, hora: r[k].hora, pgc: r[k].pgc }; });
   }
   function proximaPesagem() {
     var dias = doc.peso.dias || [];
@@ -452,6 +452,10 @@
     add(c, h('p', { class: 'mudo', style: 'margin:8px 0 0' },
       (cfg.dias || []).length ? 'Pesar ' + cfg.dias.map(function (d) { return DIAS_PLURAL[d]; }).join(' e ') + (prox ? ' (próxima: ' + (prox === hoje() ? 'hoje' : dataLonga(prox)) + ')' : '') + '. ' : '',
       cfg.instrucoes || ''));
+    var ultApple = regs.filter(function (r) { return r.fonte === 'apple-saude'; }).pop();
+    add(c, h('p', { class: 'mudo', style: 'margin:6px 0 0' }, ultApple
+      ? 'Apple Saúde conectado: última pesagem em ' + dataCurta(ultApple.data) + (ultApple.hora ? ' às ' + ultApple.hora : '') + '.'
+      : 'As pesagens da balança chegam sozinhas pelo Apple Saúde (Atalhos do iPhone, ver README). Também dá para lançar à mão:'));
     var dataIn = h('input', { type: 'date', value: hoje(), max: hoje(), 'aria-label': 'Data' });
     var kgIn = h('input', { type: 'text', class: 'kg', inputmode: 'decimal', autocomplete: 'off', placeholder: '0,0', 'aria-label': 'Peso em kg' });
     var notaIn = h('input', { type: 'text', class: 'nota', maxlength: '300', placeholder: 'Observação (opcional)' });
@@ -470,7 +474,11 @@
         var dif = anterior ? r.kg - anterior.kg : null;
         add(lista, h('li', null,
           h('div', null, h('div', { class: 'item-titulo' }, kg(r.kg), dif != null ? h('span', { class: 'chip ' + (dif < 0 ? 'ok' : dif > 0 ? 'ruim' : '') }, (dif > 0 ? '+' : dif < 0 ? '−' : '') + kg(Math.abs(dif))) : null),
-            h('div', { class: 'item-linha' }, dataLonga(r.data)), r.nota ? h('div', { class: 'item-obs' }, r.nota) : null),
+            h('div', { class: 'item-linha' }, dataLonga(r.data) + (r.hora ? ' · ' + r.hora : '')),
+            r.fonte === 'apple-saude' || r.pgc != null ? h('div', { class: 'tags' },
+              r.fonte === 'apple-saude' ? h('span', { class: 'tag tag-apple' }, 'Apple Saúde') : null,
+              r.pgc != null ? h('span', { class: 'tag' }, 'Gordura ' + numBR(r.pgc, 1) + ' %') : null) : null,
+            r.nota ? h('div', { class: 'item-obs' }, r.nota) : null),
           h('div', { class: 'acoes' }, h('button', { type: 'button', class: 'btn mini perigo', onclick: function () {
             if (confirm('Apagar o registro de ' + dataCurta(r.data) + '?')) grava('DELETE', '/peso/' + r.data);
           } }, 'Apagar'))));

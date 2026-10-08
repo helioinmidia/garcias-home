@@ -212,6 +212,47 @@ Para conferir a API no Pi:
 curl -s -H 'Host: casa.blizzard.net' http://127.0.0.1/saude/api/pessoas
 ```
 
+## Balança pelo Apple Saúde (Atalhos do iPhone)
+
+A balança grava no Apple Saúde; um atalho do iPhone lê a pesagem do dia e manda para o servidor da
+casa. Não precisa de app extra. O iPhone precisa estar no Wi-Fi de casa quando o atalho roda.
+
+**1. Criar o atalho** (app Atalhos → "+"), com estas ações, nesta ordem:
+
+1. **Buscar Amostras de Saúde**: tipo **Peso**; filtro **Data de Início é hoje**; ordenar por **Data de
+   Início**, **Mais Antiga Primeiro**; **Limite 1**. (A primeira do dia é a da manhã, em jejum.)
+2. **Se** *Amostras de Saúde* **não tem nenhum valor** → **Parar Este Atalho**. (Dia sem pesagem.)
+3. **Obter Detalhes de Amostras de Saúde**: **Valor** → renomeie a variável para *Peso*.
+4. **Obter Detalhes de Amostras de Saúde** (da mesma amostra): **Data de Início**.
+5. **Formatar Data**: formato **Personalizado** `yyyy-MM-dd` → *Data*.
+6. **Formatar Data** (mesma Data de Início): formato **Personalizado** `HH:mm` → *Hora*.
+7. *(Opcional, se a balança mede gordura)* **Buscar Amostras de Saúde**: tipo **Percentual de Gordura
+   Corporal**, **Data de Início é hoje**, **Mais Antiga Primeiro**, **Limite 1** → **Obter Detalhes**:
+   **Valor** → *Gordura*.
+8. **Obter Conteúdo do URL**: `http://casa.blizzard.net/saude/api/pessoa/helio/apple/peso`,
+   **Método POST**, **Corpo da Solicitação: JSON** com os campos (tipo Texto):
+   `kg` = *Peso*, `data` = *Data*, `hora` = *Hora*, `gordura` = *Gordura* (se tiver o passo 7).
+9. **Obter Valor do Dicionário**: chave `mensagem` → **Mostrar Notificação** com esse valor.
+
+**2. Automatizar** (Atalhos → Automação → Nova Automação → **Hora do Dia**): todos os dias às 10:00
+(depois da pesagem da manhã), **Executar Imediatamente**, escolhendo o atalho. Repetir às 22:00 pega um
+dia em que a pesagem foi mais tarde.
+
+**Regras do servidor:** vale a primeira pesagem do dia (a da manhã); rodar o atalho de novo não troca
+por uma mais tarde. Uma pesagem lançada à mão na página nunca é sobrescrita. O número pode vir com
+vírgula, em kg ou libras (`"unidade": "lb"`), e a gordura como 27,9 ou 0,279. A resposta traz
+`mensagem` ("Peso registrado: 109,8 kg em 12/10" ou o motivo de não ter registrado).
+
+Para testar sem o iPhone:
+
+```bash
+curl -s -X POST -H 'Content-Type: application/json' -H 'Host: casa.blizzard.net' \
+  -d '{"kg":"109,8","data":"2026-10-12","hora":"07:05","gordura":"27,6"}' \
+  http://127.0.0.1/saude/api/pessoa/helio/apple/peso
+```
+
+Para outra pessoa da casa, troque `helio` no endereço pelo id dela (`erika`, `ana-liz`).
+
 ## Publicar uma aplicação com servidor próprio
 
 Cada aplicação vive no próprio repositório, com o próprio `docker compose`, e escuta **só em

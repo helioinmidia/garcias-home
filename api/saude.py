@@ -22,6 +22,10 @@ de uma consulta e trocar textos que ainda estejam iguais ao original ("substitui
   PUT    /pessoa/<p>/tomada/AAAA-MM-DD/<med>       <- {"tomado": bool}
   PUT    /pessoa/<p>/peso/AAAA-MM-DD               <- {"kg": 82.4, "nota": "..."}
   DELETE /pessoa/<p>/peso/AAAA-MM-DD
+  POST   /pessoa/<p>/apple/peso                    <- pesagem vinda do Apple Saúde (Atalhos do iPhone):
+                                                     {"kg", "data" (AAAA-MM-DD ou ISO), "hora" (HH:MM), "gordura" (%),
+                                                     "unidade" (kg|lb|g)}; vale a primeira pesagem do dia e nunca
+                                                     sobrescreve um registro lançado à mão
   PUT    /pessoa/<p>/proteina/AAAA-MM-DD           <- {"g": 120}
   PUT    /pessoa/<p>/config/peso                   <- {ativo, dias, instrucoes, inicio, prazo, metaMinimaKg, metaIdealKg,
                                                      alvoKg (peso alvo de longo prazo), modalidade}
@@ -61,6 +65,7 @@ ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consu
 ROTA_DOCUMENTO = re.compile(rf"^/pessoa/({ID})/documento/({ID})$")
 ROTA_TOMADA = re.compile(rf"^/pessoa/({ID})/tomada/({DATA})/({ID})$")
 ROTA_PESO = re.compile(rf"^/pessoa/({ID})/peso/({DATA})$")
+ROTA_APPLE_PESO = re.compile(rf"^/pessoa/({ID})/apple/peso$")
 ROTA_PROTEINA = re.compile(rf"^/pessoa/({ID})/proteina/({DATA})$")
 ROTA_CONFIG = re.compile(rf"^/pessoa/({ID})/config/(peso|proteina)$")
 HORA = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -318,6 +323,55 @@ def valida(esquema, pedido, padroes=None):
 
 
 # ---------- armazenamento ----------
+# ---------- Apple Saúde (Atalhos do iPhone) ----------
+def numero_apple(valor):
+    """Número como o Atalhos envia: 104.2, "104,2", "104,2 kg"."""
+    if valor in (None, ""):
+        return None
+    if isinstance(valor, bool):
+        raise ErroPedido("valor inválido")
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    m = re.search(r"-?\d+(?:[.,]\d+)?", str(valor))
+    if not m:
+        raise ErroPedido(f"não entendi o número: {valor!r}")
+    return float(m.group(0).replace(",", "."))
+
+
+def em_kg(valor, unidade):
+    v = numero_apple(valor)
+    if v is None:
+        raise ErroPedido('"kg" é obrigatório')
+    u = (unidade or "").strip().lower()
+    if u in ("lb", "lbs", "libra", "libras"):
+        return v * 0.45359237
+    if u in ("g", "grama", "gramas") or v > 1000:
+        return v / 1000
+    return v
+
+
+def data_hora_apple(data, hora):
+    """Data AAAA-MM-DD, DD/MM/AAAA ou ISO completa (com hora); sem data, hoje."""
+    agora_local = datetime.datetime.now().astimezone()
+    data = (data or "").strip() if isinstance(data, str) else ""
+    hora = (hora or "").strip() if isinstance(hora, str) else ""
+    if not data:
+        return agora_local.date().isoformat(), hora or agora_local.strftime("%H:%M")
+    m = re.match(r"^(\d{2})/(\d{2})/(\d{4})", data)
+    if m:
+        data = f"{m.group(3)}-{m.group(2)}-{m.group(1)}" + data[10:]
+    if len(data) > 10:
+        try:
+            momento = datetime.datetime.fromisoformat(data.replace("Z", "+00:00").replace(" ", "T", 1))
+            if momento.tzinfo:
+                momento = momento.astimezone(agora_local.tzinfo)
+            return momento.date().isoformat(), hora or momento.strftime("%H:%M")
+        except ValueError:
+            data = data[:10]
+    data_ou_vazio("data", data)
+    return data, hora[:5] if HORA.match(hora[:5]) else ""
+
+
 def caminho(pessoa):
     return os.path.join(DADOS_DIR, f"{pessoa}.json")
 
@@ -674,6 +728,47 @@ class Handler(BaseHTTPRequestHandler):
             return self._trata(acao)
 
         self._envia(404, {"erro": "rota inexistente"})
+
+    def do_POST(self):
+        m = ROTA_APPLE_PESO.match(self.path.split("?", 1)[0])
+        if not m:
+            return self._envia(404, {"erro": "rota inexistente"})
+        pessoa = m.group(1)
+
+        def acao():
+            pedido = self._corpo()
+            if not isinstance(pedido, dict):
+                raise ErroPedido("envie um objeto JSON")
+            data, hora = data_hora_apple(pedido.get("data"), pedido.get("hora"))
+            kg = em_kg(pedido.get("kg"), pedido.get("unidade"))
+            gordura = numero_apple(pedido.get("gordura"))
+            if gordura is not None and 0 < gordura <= 1:
+                gordura *= 100  # o Saúde às vezes entrega a fração (0,279)
+            registro = {"kg": numero(20, 400)("kg", kg), "nota": "", "fonte": "apple-saude", "hora": hora}
+            if gordura is not None:
+                registro["pgc"] = numero(1, 80)("gordura", gordura)
+            resultado = {}
+
+            def muda(doc):
+                atual = doc["peso"]["registros"].get(data)
+                if atual and atual.get("fonte") != "apple-saude":
+                    resultado.update(resultado="mantido", motivo="já existe pesagem lançada à mão nesse dia")
+                    return
+                if atual and atual.get("hora") and hora and atual["hora"] < hora:
+                    resultado.update(resultado="mantido", motivo=f"vale a primeira pesagem do dia ({atual['hora']})")
+                    return
+                doc["peso"]["registros"][data] = registro
+                resultado.update(resultado="gravado")
+            with trava:
+                doc = le(pessoa)
+                muda(doc)
+                if resultado["resultado"] == "gravado":
+                    grava(doc)
+            texto = f"{registro['kg']:.1f} kg em {data[8:10]}/{data[5:7]}".replace(".", ",")
+            return dict(resultado, data=data, kg=registro["kg"],
+                        mensagem=("Peso registrado: " if resultado["resultado"] == "gravado" else "Não registrado: ") + texto
+                        + ("" if resultado["resultado"] == "gravado" else f" ({resultado['motivo']})"))
+        return self._trata(acao)
 
     def do_DELETE(self):
         rota = self.path.split("?", 1)[0]
