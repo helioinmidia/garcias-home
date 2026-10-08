@@ -752,13 +752,15 @@
   function indicadoresMed(m) {
     var lista = indicadoresDoMed(m.id);
     if (!lista.length) return null;
-    return h('div', { class: 'med-ind' }, h('small', null, 'Indicadores nos exames'), h('div', { class: 'tags' }, lista.map(function (r) {
+    var mostra = lista.filter(foraDaRef).concat(lista.filter(function (r) { return !foraDaRef(r); })).slice(0, 3);
+    var resto = lista.length - mostra.length;
+    return h('div', { class: 'tags med-ind' }, h('small', null, 'Exames'), mostra.map(function (r) {
       var l = r.medicamentos.filter(function (x) { return x.med === m.id; })[0], u = ultimoRes(r);
       var n = u ? nivelDe(r, u.valor) : ['', ''];
       return h('button', { type: 'button', class: 'tag ind ' + (NIVEL_CHIP[n[1]] || ''), title: l.nota || null, onclick: function () { abreIndicador(r); } },
-        h('span', { class: 'res-efeito ' + l.efeito }, (EFEITO[l.efeito] || EFEITO.acompanha)[0]), ' ' + r.nome.replace(/\s*\(.*\)$/, ''),
+        h('span', { class: 'res-efeito ' + l.efeito }, (EFEITO[l.efeito] || EFEITO.acompanha)[0]), r.nome.replace(/\s*\(.*\)$/, ''),
         u ? h('b', null, ' ' + valorRes(r, u.valor)) : null);
-    })));
+    }), resto > 0 ? h('button', { type: 'button', class: 'tag ind', onclick: function () { grupoRes = 'remedios'; resAberto = null; trocaVista('resultados'); } }, '+' + resto) : null);
   }
 
   var STATUS_EXAME = { pendente: ['Por fazer', 'aviso'], agendado: ['Agendado', 'info'], feito: ['Feito', 'ok'] };
@@ -817,11 +819,14 @@
 
   function abreIndicador(r) {
     grupoRes = foraDaRef(r) ? 'atencao' : r.grupo || 'Outros';
+    resAberto = r.id;
     if (vista === 'resultados') desenha(); else trocaVista('resultados');
     var el = document.getElementById('res-' + r.id);
-    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('destaque'); setTimeout(function () { el.classList.remove('destaque'); }, 1800); }
+    if (el) el.scrollIntoView({ block: 'start' });
   }
 
+  // Lista compacta: uma linha por indicador (mini gráfico, valor e situação). Tocar abre o detalhe só dela.
+  var resAberto = null;
   function cartaoResultados() {
     var todos = resultados();
     var c = add(cartao('res-sec', 'res-titulo'), cabecalho('Resultados de exames', 'res-titulo',
@@ -829,35 +834,26 @@
         todos.length ? h('button', { type: 'button', class: 'btn', onclick: function () { lancaResultado(); } }, 'Lançar resultado') : null,
         h('button', { type: 'button', class: 'btn', onclick: function () { editaResultado(null); } }, 'Novo indicador'))));
     if (!todos.length) { add(c, h('p', { class: 'vazio' }, 'Nenhum resultado de exame. Cadastre um indicador (LDL, glicose…) e lance os valores do laudo.')); return c; }
-    var atencao = todos.filter(foraDaRef);
-    var comMed = todos.filter(function (r) { return vinculosDe(r).length; });
     var datas = {};
     todos.forEach(function (r) { (r.valores || []).forEach(function (v) { datas[v.data] = 1; }); });
-    var ultimaData = Object.keys(datas).sort().pop();
-    add(c, h('div', { class: 'peso-topo' },
-      h('div', { class: 'num', style: '--t:var(--bad)' }, h('small', null, 'Fora da referência'), h('b', null, String(atencao.length)), h('div', { class: 'mudo' }, 'de ' + todos.length + ' indicadores')),
-      h('div', { class: 'num', style: '--t:var(--s2)' }, h('small', null, 'Ligados a remédios'), h('b', null, String(comMed.length)), h('div', { class: 'mudo' }, 'efeito esperado no gráfico')),
-      ultimaData ? h('div', { class: 'num', style: '--t:var(--s1)' }, h('small', null, 'Último exame'), h('b', null, dataCurta(ultimaData)), h('div', { class: 'mudo' }, Object.keys(datas).length + ' coletas desde ' + dataCurta(Object.keys(datas).sort()[0]))) : null));
+    datas = Object.keys(datas).sort();
     // Abas internas: pontos de atenção, os ligados a remédios e cada grupo do laudo.
     var grupos = [];
     todos.forEach(function (r) { var g = r.grupo || 'Outros'; if (grupos.indexOf(g) < 0) grupos.push(g); });
-    var abas = [['atencao', 'Atenção', atencao], ['remedios', 'Remédios', comMed]].concat(grupos.map(function (g) {
+    var abas = [['atencao', 'Atenção', todos.filter(foraDaRef)], ['remedios', 'Remédios', todos.filter(function (r) { return vinculosDe(r).length; })]].concat(grupos.map(function (g) {
       return [g, g, todos.filter(function (r) { return (r.grupo || 'Outros') === g; })];
     })).filter(function (a) { return a[2].length; });
     if (!abas.some(function (a) { return a[0] === grupoRes; })) grupoRes = abas[0][0];
-    add(c, h('nav', { class: 'filtro', 'aria-label': 'Grupo de exames' }, abas.map(function (a) {
-      return h('button', { type: 'button', 'aria-pressed': String(a[0] === grupoRes), onclick: function () { grupoRes = a[0]; desenha(); } },
-        a[1], h('span', { class: 'filtro-n' + (a[0] === 'atencao' ? ' ruim' : '') }, a[2].length));
-    })));
     var aba = abas.filter(function (a) { return a[0] === grupoRes; })[0];
-    if (grupoRes === 'atencao') add(c, h('p', { class: 'mudo', style: 'margin:0 0 10px' }, 'Indicadores cujo último resultado está fora da referência ou numa faixa de risco.'));
-    if (grupoRes === 'remedios') add(c, h('p', { class: 'mudo', style: 'margin:0 0 10px' }, 'A linha tracejada laranja marca o início do remédio: os resultados depois dela mostram o efeito.'));
-    // Com histórico ou remédio ligado: gráfico. Um valor só e sem remédio: linha compacta com a régua.
-    var graficos = aba[2].filter(function (r) { return (r.valores || []).length > 1 || vinculosDe(r).length; });
-    var linhas = aba[2].filter(function (r) { return graficos.indexOf(r) < 0; });
-    if (graficos.length) add(c, h('div', { class: 'res-grade' }, graficos.map(cartaoIndicador)));
-    if (linhas.length) add(c, h('div', { class: 'faixas res-linhas' }, linhas.map(linhaIndicador)));
-    add(c, h('p', { class: 'mudo', style: 'margin:12px 0 0' }, 'Cores: verde dentro da referência, amarelo atenção, vermelho risco, conforme as faixas do próprio laudo. A interpretação é do médico.'));
+    if (!aba[2].some(function (r) { return r.id === resAberto; })) resAberto = null;
+    add(c,
+      h('nav', { class: 'filtro', 'aria-label': 'Grupo de exames' }, abas.map(function (a) {
+        return h('button', { type: 'button', 'aria-pressed': String(a[0] === grupoRes), onclick: function () { grupoRes = a[0]; resAberto = null; desenha(); } },
+          a[1], h('span', { class: 'filtro-n' + (a[0] === 'atencao' ? ' ruim' : '') }, a[2].length));
+      })),
+      h('ul', { class: 'res-lista' }, aba[2].map(linhaRes)),
+      h('p', { class: 'mudo res-rodape' }, 'Último exame ' + dataCurta(datas[datas.length - 1]) + ' · ' + datas.length + ' coletas desde ' + dataCurta(datas[0]) +
+        ' · cores pelas faixas do laudo (verde normal, amarelo atenção, vermelho risco)'));
     return c;
   }
 
@@ -869,18 +865,30 @@
     if (Math.abs(d) < 1e-9) return h('small', { class: 'mudo' }, '= desde ' + dataCurta(a.data));
     return h('small', { class: 'mudo' }, (d > 0 ? '↑ +' : '↓ −') + numRes(Math.round(Math.abs(d) * 1000) / 1000) + ' desde ' + dataCurta(a.data));
   }
-  function botaoEditaRes(r) { return h('button', { type: 'button', class: 'btn mini', onclick: function () { editaResultado(r); } }, 'Editar'); }
 
-  function cartaoIndicador(r) {
-    var u = ultimoRes(r);
+  function linhaRes(r) {
+    var u = ultimoRes(r), meds = vinculosDe(r), aberto = resAberto === r.id;
     var n = u ? nivelDe(r, u.valor) : ['Sem resultado', ''];
-    var meds = vinculosDe(r);
-    return h('article', { class: 'res-cartao', id: 'res-' + r.id, style: '--nivel:' + (NIVEL_COR[n[1]] || 'var(--line)') },
+    var li = h('li', { id: 'res-' + r.id, class: aberto ? 'aberto' : null, style: '--nivel:' + (NIVEL_COR[n[1]] || 'var(--line)') },
+      h('button', { type: 'button', class: 'res-linha', 'aria-expanded': String(aberto), onclick: function () { resAberto = aberto ? null : r.id; desenha(); } },
+        h('span', { class: 'res-nome' }, h('b', null, r.nome),
+          h('small', null, [u ? dataCurta(u.data) : '', (r.valores || []).length > 1 ? r.valores.length + ' coletas' : '',
+            meds.map(function (l) { return (EFEITO[l.efeito] || EFEITO.acompanha)[0] + ' ' + nomeCurtoMed(medDe(l.med)); })
+              .filter(function (t, i, a) { return a.indexOf(t) === i; }).join(', ')].filter(Boolean).join(' · '))),
+        h('span', { class: 'res-mini' }, graficoRes(r, meds, true)),
+        h('span', { class: 'res-num' }, u ? h('b', null, numRes(u.valor)) : '—', u && r.unidade ? h('small', null, r.unidade) : null),
+        h('span', { class: 'res-sit' }, chipNivel(n)),
+        h('span', { class: 'res-seta', 'aria-hidden': 'true' }, '›')));
+    if (aberto) add(li, detalheRes(r, meds));
+    return li;
+  }
+
+  function detalheRes(r, meds) {
+    return h('div', { class: 'res-detalhe' },
       h('div', { class: 'res-topo' },
-        h('div', null, h('div', { class: 'item-titulo' }, r.nome), r.referencia ? h('small', { class: 'mudo' }, r.referencia) : null),
-        botaoEditaRes(r)),
-      u ? h('div', { class: 'res-valor' }, h('b', null, numRes(u.valor)), r.unidade ? h('span', null, r.unidade) : null, chipNivel(n), difRes(r)) : null,
-      graficoRes(r, meds),
+        h('div', null, r.referencia ? h('small', { class: 'mudo' }, 'Referência: ' + r.referencia) : null, difRes(r) ? h('div', null, difRes(r)) : null),
+        h('button', { type: 'button', class: 'btn mini', onclick: function () { editaResultado(r); } }, 'Editar')),
+      graficoRes(r, meds, false),
       h('div', { class: 'res-hist' }, (r.valores || []).slice().reverse().map(function (v) {
         var nv = nivelDe(r, v.valor);
         return h('span', { class: 'res-ponto', title: v.nota || null }, h('i', { style: 'background:' + (NIVEL_COR[nv[1]] || 'var(--s1)') }), dataCurta(v.data) + ' ', h('b', null, numRes(v.valor)), v.nota ? ' *' : '');
@@ -891,7 +899,7 @@
       r.observacao ? topicos(r.observacao) : null);
   }
 
-  // Remédio ligado ao indicador: o efeito esperado e se já há exame depois do início.
+  // Remédio ligado ao indicador e o efeito esperado.
   function linhaVinculo(r, l) {
     var m = medDe(l.med), ef = EFEITO[l.efeito] || EFEITO.acompanha;
     var quando = m.inicio ? (m.inicio > hoje() ? 'começa ' + dataCurta(m.inicio) : 'desde ' + dataCurta(m.inicio)) : '';
@@ -907,32 +915,14 @@
     return sem ? h('div', { class: 'res-falta' }, 'Próximo exame mostra o efeito ' + (meds.length > 1 ? 'dos remédios' : 'do remédio')) : null;
   }
 
-  function linhaIndicador(r) {
-    var u = ultimoRes(r);
-    var n = u ? nivelDe(r, u.valor) : ['Sem resultado', ''];
-    var trilho = h('div', { class: 'faixa-trilho' });
-    var lo = r.minimo, hi = r.maximo;
-    if (u && (lo != null || hi != null)) {
-      if (lo == null) lo = 0;
-      if (hi == null) hi = lo * 2 || u.valor * 2 || 1;
-      var larg = (hi - lo) || 1, ini = Math.max(0, lo - larg), fim = hi + larg;
-      var pos = function (x) { return Math.max(0, Math.min(100, ((x - ini) / (fim - ini)) * 100)); };
-      add(trilho, h('span', { class: 'faixa-normal', style: 'left:' + pos(lo) + '%;width:' + (pos(hi) - pos(lo)) + '%' }),
-        h('span', { class: 'faixa-marca ' + (n[1] === 'ok' ? 'ok' : n[1] ? 'aviso' : ''), style: 'left:' + pos(u.valor) + '%' }));
-    }
-    return h('div', { class: 'faixa', id: 'res-' + r.id },
-      h('div', { class: 'faixa-nome' }, h('b', null, r.nome), h('small', null, [r.referencia, u ? dataCurta(u.data) : ''].filter(Boolean).join(' · ')),
-        u && u.nota ? h('small', { style: 'display:block' }, u.nota) : null, r.observacao ? h('small', { style: 'display:block' }, r.observacao) : null),
-      trilho,
-      h('div', { class: 'faixa-valor' }, u ? h('b', null, valorRes(r, u.valor)) : h('span', { class: 'mudo' }, '—'), chipNivel(n), botaoEditaRes(r)));
-  }
-
   // Gráfico do histórico: faixas de risco ao fundo, pontos na cor da situação, início dos remédios tracejado.
-  function graficoRes(r, meds) {
+  // mini: miniatura da linha da lista (sem textos nem eixos).
+  function graficoRes(r, meds, mini) {
     var vals = r.valores || [];
     if (!vals.length) return null;
     var estreito = window.innerWidth < 640; // no celular, menos unidades no desenho = texto maior
-    var W = estreito ? 380 : 520, H = estreito ? 170 : 190, E = 42, D = 12, T = 22, B = 24;
+    var W = estreito ? 380 : 900, H = estreito ? 170 : 210, E = 42, D = 12, T = 22, B = 24;
+    if (mini) { W = 120; H = 36; E = 1; D = 1; T = 3; B = 3; }
     var ini = vals[0].data, fim = vals[vals.length - 1].data;
     var inicios = {};
     meds.forEach(function (l) { var m = medDe(l.med); if (m.inicio) (inicios[m.inicio] = inicios[m.inicio] || []).push(nomeCurtoMed(m)); });
@@ -956,7 +946,7 @@
     var pad = (hi - lo) * 0.15;
     lo = Math.max(lo >= 0 ? 0 : -Infinity, lo - pad); hi += pad;
     function y(v) { return T + ((hi - v) / (hi - lo)) * (H - T - B); }
-    var svg = '<svg class="grafico grafico-res" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Histórico de ' + esc(r.nome) + '">';
+    var svg = '<svg class="grafico grafico-res' + (mini ? ' mini' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Histórico de ' + esc(r.nome) + '">';
     // Faixas ao fundo.
     var faixas = (r.faixas || []).length ? r.faixas : (r.minimo != null || r.maximo != null) ? [
       r.minimo != null ? { ate: r.minimo, nivel: 'atencao' } : null, { ate: r.maximo, nivel: 'ok' }, r.maximo != null ? { ate: null, nivel: 'atencao' } : null].filter(Boolean) : [];
@@ -964,21 +954,21 @@
     faixas.forEach(function (f) {
       var de = Math.max(lo, baixo), ate = Math.min(hi, f.ate == null ? Infinity : f.ate);
       if (ate > de) svg += '<rect class="banda ' + f.nivel + '" x="' + E + '" width="' + (W - E - D) + '" y="' + y(ate).toFixed(1) + '" height="' + (y(de) - y(ate)).toFixed(1) + '"/>';
-      if (f.ate != null && f.ate > lo && f.ate < hi) svg += '<line class="borda" x1="' + E + '" x2="' + (W - D) + '" y1="' + y(f.ate).toFixed(1) + '" y2="' + y(f.ate).toFixed(1) + '"/><text x="' + (E - 6) + '" y="' + (y(f.ate) + 4).toFixed(1) + '" text-anchor="end">' + numRes(f.ate) + '</text>';
+      if (!mini && f.ate != null && f.ate > lo && f.ate < hi) svg += '<line class="borda" x1="' + E + '" x2="' + (W - D) + '" y1="' + y(f.ate).toFixed(1) + '" y2="' + y(f.ate).toFixed(1) + '"/><text x="' + (E - 6) + '" y="' + (y(f.ate) + 4).toFixed(1) + '" text-anchor="end">' + numRes(f.ate) + '</text>';
       baixo = f.ate == null ? Infinity : f.ate;
     });
-    if (!faixas.length) [lo + (hi - lo) * 0.2, lo + (hi - lo) * 0.8].forEach(function (v) {
+    if (!faixas.length && !mini) [lo + (hi - lo) * 0.2, lo + (hi - lo) * 0.8].forEach(function (v) {
       var t = Number(v.toPrecision(2));
       svg += '<line class="eixo" x1="' + E + '" x2="' + (W - D) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '"/><text x="' + (E - 6) + '" y="' + (y(t) + 4).toFixed(1) + '" text-anchor="end">' + numRes(t) + '</text>';
     });
     // Anos no eixo x.
     var a0 = +x0.slice(0, 4), a1 = +x1.slice(0, 4);
-    for (var a = a0 + 1; a <= a1; a++) {
+    for (var a = a0 + 1; a <= a1 && !mini; a++) {
       var xa = x(a + '-01-01');
       svg += '<line class="ano" x1="' + xa.toFixed(1) + '" x2="' + xa.toFixed(1) + '" y1="' + T + '" y2="' + (H - B) + '"/>';
       if (xa + 34 < W) svg += '<text x="' + (xa + 3).toFixed(1) + '" y="' + (H - 7) + '">' + a + '</text>';
     }
-    if (a0 === a1) svg += '<text x="' + E + '" y="' + (H - 7) + '">' + a0 + '</text>';
+    if (a0 === a1 && !mini) svg += '<text x="' + E + '" y="' + (H - 7) + '">' + a0 + '</text>';
     // Início dos remédios; inícios próximos dividem um rótulo só ("Vitamina D · 09/10 e 04/12").
     var grupos = [];
     Object.keys(inicios).sort().forEach(function (k) {
@@ -988,7 +978,7 @@
       if (g && xm - g.x < 110) { g.x = xm; g.datas.push(dataDM(k)); inicios[k].forEach(function (n) { if (g.nomes.indexOf(n) < 0) g.nomes.push(n); }); }
       else grupos.push({ x: xm, datas: [dataDM(k)], nomes: inicios[k].slice() });
     });
-    grupos.forEach(function (g) {
+    if (!mini) grupos.forEach(function (g) {
       svg += '<text class="remedio-txt" x="' + (g.x - 4).toFixed(1) + '" y="' + (T - 9) + '" text-anchor="end">' + esc(g.nomes.join(' + ')) + ' · ' + g.datas.join(' e ') + '</text>';
     });
     // Linha e pontos.
@@ -997,11 +987,12 @@
     vals.forEach(function (v, i) {
       var nv = nivelDe(r, v.valor), ultimo = i === vals.length - 1;
       var cx = x(v.data).toFixed(1), cy = y(v.valor).toFixed(1);
-      svg += '<circle class="ponto-res ' + (nv[1] || 'neutro') + '" r="' + (ultimo ? 6 : 4.5) + '" cx="' + cx + '" cy="' + cy + '"/>';
+      svg += '<circle class="ponto-res ' + (nv[1] || 'neutro') + '" r="' + (mini ? (ultimo ? 3.5 : 2.2) : ultimo ? 6 : 4.5) + '" cx="' + cx + '" cy="' + cy + '"/>';
+      if (mini) return;
       if (ultimo || vals.length <= 4) svg += '<text class="valor-txt' + (ultimo ? ' ultimo' : '') + '" x="' + cx + '" y="' + (y(v.valor) - 10).toFixed(1) + '" text-anchor="middle">' + numRes(v.valor) + '</text>';
       svg += '<circle class="alvo" r="14" cx="' + cx + '" cy="' + cy + '"><title>' + dataCurta(v.data) + ': ' + esc(valorRes(r, v.valor)) + ' · ' + esc(nv[0]) + '</title></circle>';
     });
-    return h('div', { html: svg + '</svg>' });
+    return h(mini ? 'span' : 'div', { html: svg + '</svg>' });
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 

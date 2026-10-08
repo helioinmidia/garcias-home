@@ -188,7 +188,8 @@ Exames mostram no menu quantos itens estão em aberto. As seções:
   de referência do próprio laudo, os números de controle (peso ideal, controle de gordura e muscular), a
   distribuição por segmento e a evolução entre avaliações. "Nova avaliação" copia aparelho, local e faixas
   da anterior.
-- **Resultados:** um gráfico por indicador de exame de sangue (LDL, glicose, testosterona…) com o
+- **Resultados:** uma linha por indicador de exame de sangue (LDL, glicose, testosterona…), com mini gráfico,
+  valor e situação; tocar abre o gráfico completo com o
   histórico de todas as coletas:
   - ao fundo, as faixas do próprio laudo: verde dentro da referência, amarelo atenção, vermelho risco;
   - abas para "Atenção" (o último valor fora da referência), "Remédios" e cada grupo do laudo;
