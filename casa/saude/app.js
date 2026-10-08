@@ -15,6 +15,7 @@
   var pessoaId = null;
   var doc = null; // documento da pessoa na tela
   var geracao = 0;
+  var filtro = 'todas'; // modalidade escolhida na barra de filtro (ou 'todas')
 
   // ---------- utilidades ----------
   function $(id) { return document.getElementById(id); }
@@ -103,7 +104,7 @@
   }
   function proximaConsulta() {
     var k = hoje();
-    return doc.consultas.filter(function (c) { return (c.status === 'agendada' || c.status === 'a-agendar') && (!c.data || c.data >= k); })
+    return doc.consultas.filter(function (c) { return passa(c) && (c.status === 'agendada' || c.status === 'a-agendar') && (!c.data || c.data >= k); })
       .sort(function (a, b) { return (a.data || '9999') < (b.data || '9999') ? -1 : 1; })[0];
   }
   function registrosPeso() {
@@ -117,6 +118,23 @@
     return null;
   }
 
+  // ---------- modalidades (especialidades) ----------
+  var CORES_MOD = ['#2e7f8f', '#8a63c4', '#c0623a', '#3b8a4a', '#b07a1a', '#4a6fb5'];
+  function modalidades() { return doc.modalidades || []; }
+  function modalidade(id) { return modalidades().filter(function (m) { return m.id === id; })[0] || null; }
+  function corMod(id) {
+    var i = modalidades().map(function (m) { return m.id; }).indexOf(id);
+    return i < 0 ? 'var(--muted)' : CORES_MOD[i % CORES_MOD.length];
+  }
+  // Itens das listas: só os da modalidade escolhida. Peso, proteína e plano sem modalidade aparecem sempre.
+  function passa(item) { return filtro === 'todas' || (!!item && item.modalidade === filtro); }
+  function passaOuSem(obj) { return filtro === 'todas' || !obj || !obj.modalidade || obj.modalidade === filtro; }
+  function chipMod(id) {
+    var m = filtro === 'todas' && modalidade(id);
+    return m ? h('span', { class: 'chip mod', style: '--mod:' + corMod(id) }, m.nome) : null;
+  }
+  function nomeFiltro() { var m = modalidade(filtro); return m ? ' em ' + m.nome : ''; }
+
   // ---------- desenho ----------
   function desenhaPessoas() {
     var nav = $('pessoas');
@@ -128,10 +146,13 @@
 
   function desenha() {
     if (!doc) return;
-    var secoes = [['hoje-sec', 'Hoje']];
-    if (doc.peso.ativo) secoes.push(['peso-sec', 'Peso']);
-    secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências']);
-    if (doc.plano) secoes.push(['plano-sec', 'Plano alimentar']);
+    if (filtro !== 'todas' && !modalidade(filtro)) filtro = 'todas';
+    var mostraPeso = doc.peso.ativo && passaOuSem(doc.peso);
+    var mostraPlano = doc.plano && passaOuSem(doc.plano);
+    var secoes = [['hoje-sec', 'Hoje'], ['mod-sec', 'Modalidades']];
+    if (mostraPeso) secoes.push(['peso-sec', 'Peso']);
+    secoes.push(['meds-sec', 'Medicamentos'], ['exames-sec', 'Exames'], ['consultas-sec', 'Consultas'], ['pend-sec', 'Pendências'], ['docs-sec', 'Documentos']);
+    if (mostraPlano) secoes.push(['plano-sec', 'Plano alimentar']);
     var nav = $('secoes');
     nav.textContent = '';
     secoes.forEach(function (s) { add(nav, h('a', { href: '#' + pessoaId + '/' + s[0] }, s[1])); });
@@ -139,14 +160,27 @@
     var pag = $('pagina');
     var rolagem = window.pageYOffset;
     pag.textContent = '';
-    add(pag, 
-      h('div', { class: 'grade' }, cartaoHoje(), cartaoConsulta()),
-      doc.peso.ativo ? cartaoPeso() : null,
+    add(pag,
+      barraFiltro(),
+      h('div', { class: 'grade' }, cartaoHoje(), h('div', { class: 'coluna' }, cartaoConsulta(), cartaoModalidades())),
+      mostraPeso ? cartaoPeso() : null,
       h('div', { class: 'grade' }, cartaoMedicamentos(), cartaoExames()),
-      h('div', { class: 'grade' }, cartaoConsultas(), cartaoPendencias()),
-      doc.plano ? cartaoPlano() : null
+      h('div', { class: 'grade' }, cartaoConsultas(), h('div', { class: 'coluna' }, cartaoPendencias(), cartaoDocumentos())),
+      mostraPlano ? cartaoPlano() : null
     );
     window.scrollTo(0, rolagem);
+  }
+
+  // Barra de filtro: Todas · Medicina Esportiva · Urologia… (só aparece com duas modalidades ou mais).
+  function barraFiltro() {
+    if (modalidades().length < 2) return null;
+    function botao(id, nome, cor) {
+      return h('button', { type: 'button', 'aria-pressed': String(filtro === id), onclick: function () { filtro = id; desenha(); } },
+        cor ? h('span', { class: 'ponto-mod', style: 'background:' + cor }) : null, nome);
+    }
+    return h('nav', { class: 'filtro', 'aria-label': 'Filtrar por modalidade' },
+      botao('todas', 'Todas', null),
+      modalidades().map(function (m) { return botao(m.id, m.nome, corMod(m.id)); }));
   }
 
   function cabecalho(titulo, id, botao) {
@@ -173,7 +207,7 @@
             onclick: function () { grava('PUT', '/tomada/' + k + '/' + m.id, { tomado: !sim }); } }),
           h('div', { class: 'txt' },
             h('div', { class: 'nome' }, h('b', null, m.nome), m.dose ? ' · ' + m.dose : ''),
-            h('div', { class: 'item-linha' }, m.quando || FREQ[m.frequencia]),
+            h('div', { class: 'item-linha' }, [m.quando || FREQ[m.frequencia], (modalidade(m.modalidade) || {}).nome].filter(Boolean).join(' · ')),
             semana)));
       });
     } else {
@@ -184,11 +218,11 @@
       add(c, h('div', { class: 'alerta' }, h('b', null, 'Falta definir: '), aDefinir.map(function (m) { return m.nome; }).join(', '),
         '. Abra o item em Medicamentos e informe a dose e a frequência da receita.'));
     }
-    if (doc.peso.ativo && (doc.peso.dias || []).indexOf(new Date().getDay()) >= 0 && !(doc.peso.registros || {})[k]) {
+    if (doc.peso.ativo && passaOuSem(doc.peso) && (doc.peso.dias || []).indexOf(new Date().getDay()) >= 0 && !(doc.peso.registros || {})[k]) {
       add(c, h('div', { class: 'alerta' }, h('b', null, 'Dia de pesagem. '), doc.peso.instrucoes || '', ' ',
         h('a', { href: '#' + pessoaId + '/peso-sec' }, 'Registrar o peso')));
     }
-    if (doc.proteina.ativo) add(c, blocoProteina());
+    if (doc.proteina.ativo && passaOuSem(doc.proteina)) add(c, blocoProteina());
     return c;
   }
 
@@ -228,13 +262,13 @@
     var faltam = p.data ? diasEntre(hoje(), p.data) : null;
     add(c, 
       h('div', { class: 'contagem' }, faltam == null ? 'Sem data' : faltam === 0 ? 'Hoje' : faltam === 1 ? 'Amanhã' : faltam + ' dias', faltam != null && faltam > 1 ? h('small', null, ' para a consulta') : null),
-      h('p', { style: 'margin:6px 0 0' }, h('b', null, p.profissional), p.especialidade ? ' · ' + p.especialidade : ''),
+      h('p', { style: 'margin:6px 0 0' }, h('b', null, p.profissional), p.especialidade ? ' · ' + p.especialidade : (modalidade(p.modalidade) ? ' · ' + modalidade(p.modalidade).nome : '')),
       h('p', { class: 'mudo', style: 'margin:2px 0 0' }, p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : '', p.local ? ' · ' + p.local : ''),
       h('p', { style: 'margin:8px 0 0' }, h('span', { class: 'chip ' + (p.status === 'agendada' ? 'ok' : 'aviso') }, p.status === 'agendada' ? 'Agendada' : 'A agendar: data aproximada')),
       p.resumo ? h('p', { class: 'item-obs' }, p.resumo) : null,
       h('div', { class: 'botoes' }, h('button', { type: 'button', class: 'btn', onclick: function () { editaItem('consultas', p); } }, p.status === 'a-agendar' ? 'Marcar data e hora' : 'Editar')));
-    var pend = doc.pendencias.filter(function (x) { return !x.feito; }).length;
-    var exames = doc.exames.filter(function (x) { return x.status !== 'feito'; }).length;
+    var pend = doc.pendencias.filter(function (x) { return passa(x) && !x.feito; }).length;
+    var exames = doc.exames.filter(function (x) { return passa(x) && x.status !== 'feito'; }).length;
     if (pend || exames) add(c, h('p', { class: 'mudo', style: 'margin:12px 0 0' }, 'Antes dela: ', [pend ? pend + (pend === 1 ? ' pendência' : ' pendências') : null, exames ? exames + (exames === 1 ? ' exame por fazer' : ' exames por fazer') : null].filter(Boolean).join(' e '), '.'));
     return c;
   }
@@ -329,10 +363,11 @@
 
   function cartaoMedicamentos() {
     var c = h('section', { class: 'cartao', id: 'meds-sec' }, cabecalho('Medicamentos e suplementos', 'meds-titulo', botaoAdd('medicamentos', 'Adicionar')));
-    if (!doc.medicamentos.length) { add(c, h('p', { class: 'vazio' }, 'Nenhum medicamento cadastrado.')); return c; }
+    var meds = doc.medicamentos.filter(passa);
+    if (!meds.length) { add(c, h('p', { class: 'vazio' }, 'Nenhum medicamento cadastrado' + nomeFiltro() + '.')); return c; }
     var ordem = { 'Em uso': 0, 'Defina a frequência': 1 };
     var lista = h('ul', { class: 'lista' });
-    doc.medicamentos.slice().sort(function (a, b) {
+    meds.sort(function (a, b) {
       var sa = situacaoMed(a)[0], sb = situacaoMed(b)[0];
       return (ordem[sa] != null ? ordem[sa] : sa === 'Encerrado' ? 9 : 5) - (ordem[sb] != null ? ordem[sb] : sb === 'Encerrado' ? 9 : 5);
     }).forEach(function (m) {
@@ -345,7 +380,7 @@
       var freq = m.frequencia === 'semanal' && (m.diasDaSemana || []).length ? m.diasDaSemana.map(function (d) { return DIAS_CURTOS[d]; }).join(', ') : FREQ[m.frequencia];
       add(lista, h('li', null,
         h('div', null,
-          h('div', { class: 'item-titulo' }, m.nome, h('span', { class: 'chip ' + sit[1] }, sit[0]), m.tipo === 'suplemento' ? h('span', { class: 'chip' }, 'Suplemento') : null),
+          h('div', { class: 'item-titulo' }, m.nome, h('span', { class: 'chip ' + sit[1] }, sit[0]), m.tipo === 'suplemento' ? h('span', { class: 'chip' }, 'Suplemento') : null, chipMod(m.modalidade)),
           h('div', { class: 'item-linha' }, [m.dose, m.quando, freq].filter(Boolean).join(' · ')),
           periodo ? h('div', { class: 'item-linha' }, periodo) : null,
           m.observacao ? h('div', { class: 'item-obs' }, m.observacao) : null),
@@ -358,14 +393,15 @@
   var STATUS_EXAME = { pendente: ['Por fazer', 'aviso'], agendado: ['Agendado', 'info'], feito: ['Feito', 'ok'] };
   function cartaoExames() {
     var c = h('section', { class: 'cartao', id: 'exames-sec' }, cabecalho('Exames', 'exames-titulo', botaoAdd('exames', 'Adicionar')));
-    if (!doc.exames.length) { add(c, h('p', { class: 'vazio' }, 'Nenhum exame cadastrado.')); return c; }
+    var exames = doc.exames.filter(passa);
+    if (!exames.length) { add(c, h('p', { class: 'vazio' }, 'Nenhum exame cadastrado' + nomeFiltro() + '.')); return c; }
     var ordem = { pendente: 0, agendado: 1, feito: 2 };
     var lista = h('ul', { class: 'lista' });
-    doc.exames.slice().sort(function (a, b) { return ordem[a.status] - ordem[b.status]; }).forEach(function (e) {
+    exames.sort(function (a, b) { return ordem[a.status] - ordem[b.status]; }).forEach(function (e) {
       var st = STATUS_EXAME[e.status] || STATUS_EXAME.pendente;
       add(lista, h('li', null,
         h('div', null,
-          h('div', { class: 'item-titulo' }, e.nome, h('span', { class: 'chip ' + st[1] }, st[0])),
+          h('div', { class: 'item-titulo' }, e.nome, h('span', { class: 'chip ' + st[1] }, st[0]), chipMod(e.modalidade)),
           e.data || e.local ? h('div', { class: 'item-linha' }, [e.data ? dataCurta(e.data) : '', e.local].filter(Boolean).join(' · ')) : null,
           e.observacao ? h('div', { class: 'item-obs' }, e.observacao) : null),
         botoesItem('exames', e)));
@@ -377,13 +413,14 @@
   var STATUS_CONSULTA = { 'a-agendar': ['A agendar', 'aviso'], agendada: ['Agendada', 'info'], realizada: ['Realizada', 'ok'], cancelada: ['Cancelada', ''] };
   function cartaoConsultas() {
     var c = h('section', { class: 'cartao', id: 'consultas-sec' }, cabecalho('Consultas', 'consultas-titulo', botaoAdd('consultas', 'Adicionar')));
-    if (!doc.consultas.length) { add(c, h('p', { class: 'vazio' }, 'Nenhuma consulta registrada.')); return c; }
+    var consultas = doc.consultas.filter(passa);
+    if (!consultas.length) { add(c, h('p', { class: 'vazio' }, 'Nenhuma consulta registrada' + nomeFiltro() + '.')); return c; }
     var lista = h('ul', { class: 'lista' });
-    doc.consultas.slice().sort(function (a, b) { return (b.data || '9999') < (a.data || '9999') ? -1 : 1; }).forEach(function (q) {
+    consultas.sort(function (a, b) { return (b.data || '9999') < (a.data || '9999') ? -1 : 1; }).forEach(function (q) {
       var st = STATUS_CONSULTA[q.status] || STATUS_CONSULTA.agendada;
       add(lista, h('li', null,
         h('div', null,
-          h('div', { class: 'item-titulo' }, q.profissional, h('span', { class: 'chip ' + st[1] }, st[0])),
+          h('div', { class: 'item-titulo' }, q.profissional, h('span', { class: 'chip ' + st[1] }, st[0]), chipMod(q.modalidade)),
           h('div', { class: 'item-linha' }, [q.data ? dataCurta(q.data) + (q.hora ? ' ' + q.hora : '') : 'Sem data', q.especialidade, q.local].filter(Boolean).join(' · ')),
           q.resumo ? h('details', { class: 'resumo' }, h('summary', null, q.status === 'realizada' ? 'Resumo e condutas' : 'Observações'), h('div', null, q.resumo)) : null),
         botoesItem('consultas', q)));
@@ -395,11 +432,11 @@
   function cartaoPendencias() {
     var c = h('section', { class: 'cartao', id: 'pend-sec' }, cabecalho('Pendências', 'pend-titulo'));
     var k = hoje();
-    var itens = doc.pendencias.slice().sort(function (a, b) {
+    var itens = doc.pendencias.filter(passa).sort(function (a, b) {
       if (a.feito !== b.feito) return a.feito ? 1 : -1;
       return (a.prazo || '9999') < (b.prazo || '9999') ? -1 : 1;
     });
-    if (!itens.length) add(c, h('p', { class: 'vazio' }, 'Nada pendente.'));
+    if (!itens.length) add(c, h('p', { class: 'vazio' }, 'Nada pendente' + nomeFiltro() + '.'));
     itens.forEach(function (p) {
       var atrasada = !p.feito && p.prazo && p.prazo < k;
       add(c, h('div', { class: 'pend' + (p.feito ? ' feito' : '') },
@@ -407,7 +444,7 @@
           grava('PUT', '/pendencias/' + p.id, Object.assign({}, p, { feito: ev.target.checked }));
         } }),
         h('div', { class: 'txt' }, h('span', null, p.texto),
-          p.prazo ? h('div', { class: 'item-linha' }, h('span', { class: 'chip ' + (atrasada ? 'ruim' : p.feito ? '' : 'info') }, (atrasada ? 'Atrasada · ' : 'Até ') + dataCurta(p.prazo))) : null),
+          p.prazo || chipMod(p.modalidade) ? h('div', { class: 'item-linha' }, p.prazo ? h('span', { class: 'chip ' + (atrasada ? 'ruim' : p.feito ? '' : 'info') }, (atrasada ? 'Atrasada · ' : 'Até ') + dataCurta(p.prazo)) : null, ' ', chipMod(p.modalidade)) : null),
         h('button', { type: 'button', class: 'btn mini', onclick: function () { editaItem('pendencias', p); } }, 'Editar')));
     });
     var novo = h('input', { type: 'text', maxlength: '300', placeholder: 'Nova pendência', 'aria-label': 'Nova pendência' });
@@ -415,16 +452,96 @@
       ev.preventDefault();
       var t = novo.value.trim();
       if (!t) return;
-      grava('PUT', '/pendencias/' + novoId(t), { texto: t, prazo: '', feito: false });
+      grava('PUT', '/pendencias/' + novoId(t), { texto: t, prazo: '', feito: false, modalidade: filtro !== 'todas' ? filtro : '' });
     } }, h('div', { style: 'flex:1;min-width:200px' }, novo), h('button', { type: 'submit', class: 'btn primario' }, 'Adicionar')));
     return c;
+  }
+
+  function cartaoModalidades() {
+    var c = h('section', { class: 'cartao', id: 'mod-sec' }, cabecalho('Modalidades', 'mod-titulo', botaoAdd('modalidades', 'Adicionar')));
+    if (!modalidades().length) {
+      add(c, h('p', { class: 'vazio' }, 'Nenhuma modalidade. Cadastre as especialidades que acompanham esta pessoa, por exemplo Urologia, com o médico e o contato.'));
+      return c;
+    }
+    var k = hoje();
+    var lista = h('ul', { class: 'lista' });
+    modalidades().forEach(function (m) {
+      var meds = doc.medicamentos.filter(function (x) { return x.modalidade === m.id && ativoEm(x, k); }).length;
+      var exames = doc.exames.filter(function (x) { return x.modalidade === m.id && x.status !== 'feito'; }).length;
+      var pend = doc.pendencias.filter(function (x) { return x.modalidade === m.id && !x.feito; }).length;
+      var resumo = [meds ? meds + (meds === 1 ? ' medicamento em uso' : ' medicamentos em uso') : null,
+        exames ? exames + (exames === 1 ? ' exame por fazer' : ' exames por fazer') : null,
+        pend ? pend + (pend === 1 ? ' pendência' : ' pendências') : null].filter(Boolean).join(' · ');
+      add(lista, h('li', null,
+        h('div', null,
+          h('div', { class: 'item-titulo' }, h('span', { class: 'ponto-mod', style: 'background:' + corMod(m.id) }), m.nome),
+          m.profissional || m.registro ? h('div', { class: 'item-linha' }, [m.profissional, m.registro].filter(Boolean).join(' · ')) : null,
+          m.local ? h('div', { class: 'item-linha' }, m.local) : null,
+          m.telefone ? h('div', { class: 'item-linha' }, h('a', { href: 'tel:' + m.telefone.replace(/[^\d+]/g, '') }, m.telefone)) : null,
+          resumo ? h('div', { class: 'item-linha' }, resumo) : null,
+          m.observacao ? h('div', { class: 'item-obs' }, m.observacao) : null),
+        botoesItem('modalidades', m)));
+    });
+    add(c, lista);
+    return c;
+  }
+
+  var TIPOS_DOC = { 'application/pdf': 'PDF', 'image/jpeg': 'JPG', 'image/png': 'PNG', 'image/heic': 'HEIC', 'image/webp': 'WEBP' };
+  function tamanho(n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  function cartaoDocumentos() {
+    var c = h('section', { class: 'cartao', id: 'docs-sec' }, cabecalho('Documentos', 'docs-titulo'));
+    var docs = (doc.documentos || []).filter(passa).sort(function (a, b) { return (b.data || b.enviadoEm || '') < (a.data || a.enviadoEm || '') ? -1 : 1; });
+    if (!docs.length) add(c, h('p', { class: 'vazio' }, 'Nenhum documento' + nomeFiltro() + '. Guarde aqui receitas, pedidos e resultados de exames (PDF ou foto).'));
+    else {
+      var lista = h('ul', { class: 'lista' });
+      docs.forEach(function (d) {
+        add(lista, h('li', null,
+          h('div', null,
+            h('div', { class: 'item-titulo' }, h('a', { href: API + '/pessoa/' + pessoaId + '/documento/' + d.id, target: '_blank', rel: 'noopener' }, d.nome), chipMod(d.modalidade)),
+            h('div', { class: 'item-linha' }, [d.data ? dataCurta(d.data) : '', TIPOS_DOC[d.tipo] || '', tamanho(d.tamanho || 0)].filter(Boolean).join(' · '))),
+          h('div', { class: 'acoes' }, h('button', { type: 'button', class: 'btn mini perigo', onclick: function () {
+            if (confirm('Apagar o documento "' + d.nome + '"?')) grava('DELETE', '/documento/' + d.id);
+          } }, 'Apagar'))));
+      });
+      add(c, lista);
+    }
+    var arq = h('input', { type: 'file', accept: 'application/pdf,image/jpeg,image/png,image/heic,image/webp', 'aria-label': 'Arquivo' });
+    var nome = h('input', { type: 'text', maxlength: '160', placeholder: 'Nome do documento', 'aria-label': 'Nome do documento' });
+    var data = h('input', { type: 'date', 'aria-label': 'Data do documento' });
+    var mod = seletorModalidade('modalidade', filtro !== 'todas' ? filtro : '');
+    arq.onchange = function () { if (arq.files[0] && !nome.value) nome.value = arq.files[0].name.replace(/\.[^.]+$/, ''); };
+    add(c, h('form', { class: 'form-doc', onsubmit: function (ev) {
+      ev.preventDefault();
+      var f = arq.files[0];
+      if (!f) { toast('Escolha o arquivo.'); return; }
+      if (!TIPOS_DOC[f.type]) { toast('Envie um PDF ou uma foto (JPG, PNG, HEIC ou WEBP).'); return; }
+      if (f.size > 15 * 1048576) { toast('O arquivo passa de 15 MB.'); return; }
+      geracao++;
+      fetch(API + '/pessoa/' + pessoaId + '/documento/' + novoId(nome.value || f.name), {
+        method: 'PUT', body: f,
+        headers: { 'Content-Type': f.type, 'X-Nome': encodeURIComponent(nome.value.trim() || f.name), 'X-Modalidade': mod.value, 'X-Data': data.value },
+      }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.erro || 'HTTP ' + r.status); return j; }); })
+        .then(function (novo) { if (novo.id === pessoaId) { doc = novo; desenha(); } toast('Documento guardado.'); })
+        .catch(function (e) { toast('Não consegui enviar: ' + e.message); });
+    } },
+      h('label', { class: 'campo' }, 'Arquivo (PDF ou foto)', arq),
+      h('div', { class: 'duas' }, h('label', { class: 'campo' }, 'Nome', nome), h('label', { class: 'campo' }, 'Data', data)),
+      modalidades().length ? h('label', { class: 'campo' }, 'Modalidade', mod) : null,
+      h('div', null, h('button', { type: 'submit', class: 'btn primario' }, 'Guardar documento'))));
+    return c;
+  }
+
+  function seletorModalidade(nome, valor) {
+    return h('select', { name: nome },
+      h('option', { value: '', selected: !valor }, 'Sem modalidade'),
+      modalidades().map(function (m) { return h('option', { value: m.id, selected: m.id === valor }, m.nome); }));
   }
 
   var CORES_PRATO = ['#4f9a5d', '#b5532b', '#c99a2e'];
   function cartaoPlano() {
     var p = doc.plano;
     var c = h('section', { class: 'cartao', id: 'plano-sec' },
-      cabecalho(p.titulo || 'Plano alimentar', 'plano-titulo', h('span', { class: 'mudo' }, [p.autor, p.data ? dataCurta(p.data) : ''].filter(Boolean).join(' · '))));
+      cabecalho(p.titulo || 'Plano alimentar', 'plano-titulo', h('span', { class: 'mudo' }, [(modalidade(p.modalidade) || {}).nome, p.autor, p.data ? dataCurta(p.data) : ''].filter(Boolean).join(' · '))));
     if (p.objetivo) add(c, h('p', { class: 'objetivo' }, h('b', null, 'Objetivo: '), p.objetivo));
     var grade = h('div', { class: 'plano-grade' });
     (p.secoes || []).forEach(function (s) {
@@ -449,6 +566,7 @@
   // ---------- diálogo de edição ----------
   var CAMPOS = {
     medicamentos: { titulo: 'medicamento ou suplemento', campos: [
+      ['modalidade', 'Modalidade', 'modalidade'],
       ['nome', 'Nome', 'texto', { obrigatorio: true }],
       ['tipo', 'Tipo', 'opcoes', { opcoes: [['medicamento', 'Medicamento'], ['suplemento', 'Suplemento']] }],
       ['dose', 'Dose', 'texto', { dica: 'Ex.: 40 mg, 5 g, 50.000 UI' }],
@@ -458,11 +576,13 @@
       ['inicio', 'Início', 'data', { par: true }], ['fim', 'Fim', 'data', { par: true, dica: 'Vazio = uso contínuo' }],
       ['observacao', 'Observações', 'textoLongo'] ] },
     exames: { titulo: 'exame', campos: [
+      ['modalidade', 'Modalidade', 'modalidade'],
       ['nome', 'Exame', 'texto', { obrigatorio: true }],
       ['status', 'Situação', 'opcoes', { opcoes: [['pendente', 'Por fazer'], ['agendado', 'Agendado'], ['feito', 'Feito']] }],
       ['data', 'Data', 'data', { par: true }], ['local', 'Local', 'texto', { par: true }],
       ['observacao', 'Observações e resultados', 'textoLongo'] ] },
     consultas: { titulo: 'consulta', campos: [
+      ['modalidade', 'Modalidade', 'modalidade'],
       ['profissional', 'Profissional', 'texto', { obrigatorio: true }],
       ['especialidade', 'Especialidade', 'texto'],
       ['data', 'Data', 'data', { par: true }], ['hora', 'Hora', 'hora', { par: true }],
@@ -470,9 +590,17 @@
       ['status', 'Situação', 'opcoes', { opcoes: [['a-agendar', 'A agendar'], ['agendada', 'Agendada'], ['realizada', 'Realizada'], ['cancelada', 'Cancelada']] }],
       ['resumo', 'Resumo, condutas e observações', 'textoLongo', { linhas: 8 }] ] },
     pendencias: { titulo: 'pendência', campos: [
+      ['modalidade', 'Modalidade', 'modalidade'],
       ['texto', 'Pendência', 'texto', { obrigatorio: true }],
       ['prazo', 'Prazo', 'data'],
       ['feito', 'Feita', 'check'] ] },
+    modalidades: { titulo: 'modalidade', campos: [
+      ['nome', 'Modalidade', 'texto', { obrigatorio: true, dica: 'Ex.: Urologia, Medicina Esportiva, Pediatria' }],
+      ['profissional', 'Médico ou profissional', 'texto'],
+      ['registro', 'Registro', 'texto', { dica: 'Ex.: CRM 12345-PR · RQE 678' }],
+      ['local', 'Local', 'texto'],
+      ['telefone', 'Telefone', 'texto'],
+      ['observacao', 'Observações', 'textoLongo'] ] },
   };
 
   function campoDe(nome, rotulo, tipo, op, valor) {
@@ -490,6 +618,9 @@
       return h('div', { class: 'campo', 'data-campo': nome }, rotulo, h('div', { class: 'dias-semana' }, DIAS_CURTOS.map(function (d, i) {
         return h('label', null, h('input', { type: 'checkbox', name: nome, value: i, checked: sel.indexOf(i) >= 0 }), d);
       })));
+    } else if (tipo === 'modalidade') {
+      input = seletorModalidade(nome, valor);
+      if (!modalidades().length) op = { dica: 'Cadastre as modalidades no cartão Modalidades.' };
     } else if (tipo === 'numero') {
       input = h('input', { name: nome, type: 'text', inputmode: 'decimal', autocomplete: 'off' });
       input.value = valor != null ? String(valor).replace('.', ',') : '';
@@ -553,11 +684,13 @@
     exames: { status: 'pendente' },
     consultas: { status: 'agendada' },
     pendencias: { feito: false },
+    modalidades: {},
   };
   function editaItem(colecao, item) {
     var def = CAMPOS[colecao];
     var id = item ? item.id : null;
-    abreDialogo((item ? 'Editar ' : 'Adicionar ') + def.titulo, def.campos, item || NOVOS[colecao], function (dados) {
+    var valores = item || Object.assign({ modalidade: filtro !== 'todas' ? filtro : '' }, NOVOS[colecao]);
+    abreDialogo((item ? 'Editar ' : 'Adicionar ') + def.titulo, def.campos, valores, function (dados) {
       var nome = dados.nome || dados.texto || dados.profissional;
       return grava('PUT', '/' + colecao + '/' + (id || novoId(nome)), dados);
     }, item ? function () { grava('DELETE', '/' + colecao + '/' + id); } : null);
@@ -571,12 +704,14 @@
       ['instrucoes', 'Como pesar', 'texto'],
       ['inicio', 'Início do período', 'data', { par: true }], ['prazo', 'Prazo da meta', 'data', { par: true }],
       ['metaMinimaKg', 'Meta mínima (kg a perder)', 'numero', { par: true }], ['metaIdealKg', 'Meta ideal (kg a perder)', 'numero', { par: true }],
+      ['modalidade', 'Modalidade', 'modalidade'],
     ], cfg, function (d) { return grava('PUT', '/config/peso', d); });
   }
   function configProteina() {
     abreDialogo('Proteína diária', [
       ['ativo', 'Acompanhar a proteína desta pessoa', 'check'],
       ['metaG', 'Meta diária (g)', 'numero'],
+      ['modalidade', 'Modalidade', 'modalidade'],
     ], doc.proteina, function (d) { return grava('PUT', '/config/proteina', d); });
   }
 
@@ -585,6 +720,7 @@
     if (id === pessoaId) return;
     pessoaId = id;
     doc = null;
+    filtro = 'todas';
     try { localStorage.setItem('saude.pessoa', id); } catch (e) { /* só conveniência */ }
     if (location.hash.split('/')[0] !== '#' + id) history.replaceState(null, '', '#' + id);
     desenhaPessoas();

@@ -156,7 +156,15 @@ Recarregue o YAML ou reinicie o HA. As entidades ficam `sensor.rotina_ana_liz_*`
 
 ## Acompanhamento Médico
 
-Fica em `casa.blizzard.net/saude/`, com uma aba por pessoa: Ana Liz, Erika e Helio. Cada aba tem:
+Fica em `casa.blizzard.net/saude/`, com uma aba por pessoa: Ana Liz, Erika e Helio.
+
+Cada pessoa tem **modalidades**, que são as especialidades que a acompanham (por exemplo Medicina
+Esportiva e Urologia), cada uma com médico, registro, local e telefone. Medicamentos, exames, consultas,
+pendências e documentos pertencem a uma modalidade. Com duas modalidades ou mais aparece uma barra de
+filtro (Todas · Medicina Esportiva · Urologia). O cartão Hoje mostra sempre tudo o que há para tomar no
+dia, com a modalidade de cada item.
+
+Cada aba tem:
 
 - **Hoje:** os medicamentos e suplementos do dia, cada um com o botão de tomado e os últimos 7 dias.
   Também avisa quando é dia de pesagem e mostra a proteína do dia, com botões +10, +20, +25… e a meta.
@@ -168,6 +176,8 @@ Fica em `casa.blizzard.net/saude/`, com uma aba por pessoa: Ana Liz, Erika e Hel
 - **Medicamentos, exames, consultas e pendências:** cada item pode ser adicionado, editado e apagado.
   Um medicamento tem período (início e fim), frequência (todos os dias, dias da semana, quando
   necessário ou a definir) e dose. A consulta guarda o resumo e as condutas.
+- **Documentos:** receitas, pedidos e resultados de exames, em PDF ou foto, até 15 MB cada. Ficam no Pi
+  em `dados/saude/arquivos/<pessoa>/` e abrem no próprio navegador.
 - **Plano alimentar**, quando houver um.
 
 **Onde ficam os dados:**
@@ -176,6 +186,9 @@ Fica em `casa.blizzard.net/saude/`, com uma aba por pessoa: Ana Liz, Erika e Hel
   fica no navegador, e todos os aparelhos veem o mesmo estado.
 - Na primeira vez, cada arquivo é copiado de `api/saude-inicial/`. Depois disso as mudanças feitas na
   tela não voltam para o git, e editar `saude-inicial/` não altera mais os dados do Pi.
+- Para acrescentar dados a quem já tem arquivo no Pi, use uma atualização em
+  `api/saude-inicial/atualizacoes/`. A API aplica cada uma uma única vez ao iniciar (fica anotada em
+  `migracoes`), só acrescentando, sem apagar o que foi registrado na tela. O `install.sh` reinicia as APIs.
 
 **Privacidade:** a página não tem senha. Qualquer aparelho que alcance o Pi na rede de casa consegue
 abrir e alterar os dados. Os dados iniciais do Helio (plano alimentar, medicamentos e condutas da

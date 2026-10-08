@@ -44,6 +44,9 @@ fi
 sudo docker compose up -d --remove-orphans
 # O Caddyfile é montado como arquivo: depois de um git pull o container ainda vê o antigo até reiniciar.
 sudo docker compose restart caddy
+# As APIs leem o código de api/ montado como volume: reiniciar carrega a versão nova (e aplica as
+# atualizações de dados de api/saude-inicial/atualizacoes, uma vez só).
+sudo docker compose restart rotina-api saude-api
 
 cat <<MSG
 

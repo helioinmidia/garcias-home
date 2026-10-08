@@ -1,0 +1,103 @@
+{
+  "id": "2026-10-modalidades-urologia",
+  "pessoa": "helio",
+  "descricao": "Separa o acompanhamento por modalidade: o que já existia é da Medicina Esportiva (Dr. Fernando Teles); entram a receita e o pedido de exames da Urologia (Dr. Bruno Bertoni Ferraz, 30/09/2026).",
+  "modalidades": [
+    {
+      "id": "medicina-esportiva",
+      "nome": "Medicina Esportiva",
+      "profissional": "Dr. Fernando Teles",
+      "registro": "",
+      "local": "",
+      "telefone": "",
+      "observacao": ""
+    },
+    {
+      "id": "urologia",
+      "nome": "Urologia",
+      "profissional": "Dr. Bruno Bertoni Ferraz",
+      "registro": "CRM 35526-PR · RQE 33425",
+      "local": "QOR Médica · Av. Sete de Setembro, 4698, sala 1505, Batel, Curitiba - PR",
+      "telefone": "(43) 99143-0050",
+      "observacao": ""
+    }
+  ],
+  "semModalidade": "medicina-esportiva",
+  "itens": {
+    "medicamentos": [
+      {
+        "id": "clomifeno",
+        "modalidade": "urologia",
+        "nome": "Citrato de clomifeno 50 mg",
+        "tipo": "medicamento",
+        "dose": "1 comprimido",
+        "quando": "Segunda, quarta e sexta",
+        "frequencia": "semanal",
+        "diasDaSemana": [1, 3, 5],
+        "inicio": "2026-09-30",
+        "fim": "2026-11-28",
+        "observacao": "Receita de 30/09/2026 (Dr. Bruno Bertoni Ferraz): tomar 1 comprimido em dias alternados (segunda, quarta e sexta) por 60 dias. Caixa com 30 comprimidos.\nO início foi contado a partir da data da receita; se começou em outro dia, ajuste o início e o fim (60 dias)."
+      },
+      {
+        "id": "anastrozol",
+        "modalidade": "urologia",
+        "nome": "Anastrozol 1 mg",
+        "tipo": "medicamento",
+        "dose": "1 comprimido",
+        "quando": "Terça e quinta",
+        "frequencia": "semanal",
+        "diasDaSemana": [2, 4],
+        "inicio": "2026-09-30",
+        "fim": "2026-11-28",
+        "observacao": "Receita de 30/09/2026 (Dr. Bruno Bertoni Ferraz; na receita, \"Anastrazol\"): tomar 1 comprimido às terças e quintas por 60 dias. Caixa com 30 comprimidos.\nO início foi contado a partir da data da receita; se começou em outro dia, ajuste o início e o fim (60 dias)."
+      }
+    ],
+    "exames": [
+      {
+        "id": "exames-sangue-urologia",
+        "modalidade": "urologia",
+        "nome": "Exames de sangue (hormônios e PSA)",
+        "status": "pendente",
+        "data": "",
+        "local": "",
+        "observacao": "Pedido de 30/09/2026 (Dr. Bruno Bertoni Ferraz), CID N39:\n- Testosterona total e livre (TUSS 40316513 / 40316505)\n- Estradiol (TUSS 40316524)\n- FSH (TUSS 40316289)\n- LH (TUSS 40316335)\n- Prolactina (TUSS 40316416)\n- TSH e T4 livre (TUSS 40316521 / 40316491)\n- SHBG (TUSS 40316300)\n- Albumina (TUSS 40301222)\n- PSA total (TUSS 40306305)\n- PSA livre (TUSS 40316149)\nDá para colher junto com os exames de sangue pedidos pela Medicina Esportiva."
+      }
+    ],
+    "consultas": [
+      {
+        "id": "consulta-urologia-2026-09-30",
+        "modalidade": "urologia",
+        "data": "2026-09-30",
+        "hora": "",
+        "profissional": "Dr. Bruno Bertoni Ferraz",
+        "especialidade": "Urologia",
+        "local": "QOR Médica · Av. Sete de Setembro, 4698, sala 1505, Batel, Curitiba - PR",
+        "status": "realizada",
+        "resumo": "Receita simples (emitida em 30/09/2026, válida até 30/10/2026):\n1. Citrato de clomifeno 50 mg (30 comprimidos): 1 comprimido em dias alternados (segunda, quarta e sexta) por 60 dias.\n2. Anastrozol 1 mg (30 comprimidos): 1 comprimido às terças e quintas por 60 dias.\n\nSolicitação de exames de sangue (CID N39): testosterona total e livre, estradiol, FSH, LH, prolactina, TSH e T4 livre, SHBG, albumina, PSA total e PSA livre."
+      }
+    ],
+    "pendencias": [
+      {
+        "id": "comprar-urologia",
+        "modalidade": "urologia",
+        "texto": "Comprar o clomifeno e o anastrozol (a receita vale até 30/10/2026)",
+        "prazo": "2026-10-30",
+        "feito": false
+      },
+      {
+        "id": "inicio-urologia",
+        "modalidade": "urologia",
+        "texto": "Confirmar o dia em que começou o clomifeno e o anastrozol e ajustar o início e o fim aqui",
+        "prazo": "",
+        "feito": false
+      },
+      {
+        "id": "exames-urologia",
+        "modalidade": "urologia",
+        "texto": "Fazer os exames de sangue pedidos pelo urologista (hormônios e PSA)",
+        "prazo": "",
+        "feito": false
+      }
+    ]
+  }
+}

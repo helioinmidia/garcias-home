@@ -2,21 +2,30 @@
 """
 API do Acompanhamento Médico da casa. Só biblioteca padrão.
 
-Um arquivo por pessoa em DADOS_DIR (<id>.json) com medicamentos, exames, consultas, pendências, plano
-alimentar, peso, proteína e as tomadas de cada dia. Na primeira vez, cada arquivo nasce de
+Um arquivo por pessoa em DADOS_DIR (<id>.json) com as modalidades (especialidades e seus médicos),
+medicamentos, exames, consultas, pendências, documentos, plano alimentar, peso, proteína e as tomadas de
+cada dia. Cada item aponta para uma modalidade ("modalidade": id). Na primeira vez, cada arquivo nasce de
 api/saude-inicial/<id>.json; depois disso só a API grava (os dados ficam no Pi, fora do git).
+
+Atualizações: cada arquivo em api/saude-inicial/atualizacoes/*.json é aplicado uma única vez a cada
+pessoa (fica anotado em "migracoes"), sem apagar nada do que foi registrado na tela.
 
   GET    /status                                   -> {"ok": true}
   GET    /pessoas                                  -> {"pessoas": [{id, nome}]}
   GET    /pessoa/<p>                               -> documento inteiro da pessoa (com "revisao")
-  PUT    /pessoa/<p>/<colecao>/<item>              <- item (medicamentos, exames, consultas, pendencias)
+  PUT    /pessoa/<p>/<colecao>/<item>              <- item (modalidades, medicamentos, exames, consultas, pendencias)
   DELETE /pessoa/<p>/<colecao>/<item>
   PUT    /pessoa/<p>/tomada/AAAA-MM-DD/<med>       <- {"tomado": bool}
   PUT    /pessoa/<p>/peso/AAAA-MM-DD               <- {"kg": 82.4, "nota": "..."}
   DELETE /pessoa/<p>/peso/AAAA-MM-DD
   PUT    /pessoa/<p>/proteina/AAAA-MM-DD           <- {"g": 120}
-  PUT    /pessoa/<p>/config/peso                   <- {ativo, dias, instrucoes, inicio, prazo, metaMinimaKg, metaIdealKg}
-  PUT    /pessoa/<p>/config/proteina               <- {ativo, metaG}
+  PUT    /pessoa/<p>/config/peso                   <- {ativo, dias, instrucoes, inicio, prazo, metaMinimaKg, metaIdealKg,
+                                                     modalidade}
+  PUT    /pessoa/<p>/config/proteina               <- {ativo, metaG, modalidade}
+  PUT    /pessoa/<p>/documento/<id>                <- o arquivo (PDF ou imagem, até 15 MB) no corpo; cabeçalhos
+                                                     X-Nome, X-Modalidade e X-Data (opcionais, nome em %-encoding)
+  GET    /pessoa/<p>/documento/<id>                -> o arquivo
+  DELETE /pessoa/<p>/documento/<id>
 
 Toda gravação devolve o documento inteiro da pessoa. O Caddy publica em casa.blizzard.net/saude/api/*.
 Variáveis: DADOS_DIR (padrão ./dados/saude), INICIAL_DIR (padrão ./api/saude-inicial), PORT (8082), BIND.
@@ -30,6 +39,7 @@ import sys
 import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import quote, unquote
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 DADOS_DIR = os.environ.get("DADOS_DIR") or os.path.join(os.path.dirname(AQUI), "dados", "saude")
@@ -37,11 +47,14 @@ INICIAL_DIR = os.environ.get("INICIAL_DIR") or os.path.join(AQUI, "saude-inicial
 PORT = int(os.environ.get("PORT", "8082"))
 BIND = os.environ.get("BIND", "127.0.0.1")
 MAX_BODY = 64 * 1024
+MAX_ARQUIVO = 15 * 1024 * 1024
+TIPOS_ARQUIVO = {"application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png", "image/heic": "heic", "image/webp": "webp"}
 
 ID = r"[a-z0-9][a-z0-9-]{0,63}"
 DATA = r"\d{4}-\d{2}-\d{2}"
 ROTA_PESSOA = re.compile(rf"^/pessoa/({ID})$")
-ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(medicamentos|exames|consultas|pendencias)/({ID})$")
+ROTA_ITEM = re.compile(rf"^/pessoa/({ID})/(modalidades|medicamentos|exames|consultas|pendencias)/({ID})$")
+ROTA_DOCUMENTO = re.compile(rf"^/pessoa/({ID})/documento/({ID})$")
 ROTA_TOMADA = re.compile(rf"^/pessoa/({ID})/tomada/({DATA})/({ID})$")
 ROTA_PESO = re.compile(rf"^/pessoa/({ID})/peso/({DATA})$")
 ROTA_PROTEINA = re.compile(rf"^/pessoa/({ID})/proteina/({DATA})$")
@@ -91,6 +104,14 @@ def data_ou_vazio(nome, valor):
     return valor
 
 
+def id_ou_vazio(nome, valor):
+    if valor in (None, ""):
+        return ""
+    if not isinstance(valor, str) or not re.match(rf"^{ID}$", valor):
+        raise ErroPedido(f'"{nome}" deve ser o id de uma modalidade')
+    return valor
+
+
 def hora_ou_vazio(nome, valor):
     if valor in (None, ""):
         return ""
@@ -132,7 +153,16 @@ def numero(minimo, maximo):
 
 
 ESQUEMAS = {
+    "modalidades": {
+        "nome": texto(80, True),
+        "profissional": texto(120),
+        "registro": texto(120),
+        "local": texto(240),
+        "telefone": texto(60),
+        "observacao": texto(1000),
+    },
     "medicamentos": {
+        "modalidade": id_ou_vazio,
         "nome": texto(120, True),
         "tipo": opcao("medicamento", "suplemento"),
         "dose": texto(120),
@@ -144,6 +174,7 @@ ESQUEMAS = {
         "observacao": texto(1000),
     },
     "exames": {
+        "modalidade": id_ou_vazio,
         "nome": texto(160, True),
         "status": opcao("pendente", "agendado", "feito"),
         "data": data_ou_vazio,
@@ -151,6 +182,7 @@ ESQUEMAS = {
         "observacao": texto(1000),
     },
     "consultas": {
+        "modalidade": id_ou_vazio,
         "data": data_ou_vazio,
         "hora": hora_ou_vazio,
         "profissional": texto(120, True),
@@ -160,12 +192,14 @@ ESQUEMAS = {
         "resumo": texto(6000),
     },
     "pendencias": {
+        "modalidade": id_ou_vazio,
         "texto": texto(300, True),
         "prazo": data_ou_vazio,
         "feito": booleano,
     },
 }
 PADROES = {
+    "modalidades": {},
     "medicamentos": {"tipo": "medicamento", "frequencia": "diario"},
     "exames": {"status": "pendente"},
     "consultas": {"status": "agendada"},
@@ -180,8 +214,9 @@ CONFIG = {
         "prazo": data_ou_vazio,
         "metaMinimaKg": numero(0, 100),
         "metaIdealKg": numero(0, 100),
+        "modalidade": id_ou_vazio,
     },
-    "proteina": {"ativo": booleano, "metaG": numero(0, 1000)},
+    "proteina": {"ativo": booleano, "metaG": numero(0, 1000), "modalidade": id_ou_vazio},
 }
 
 
@@ -228,10 +263,62 @@ def normaliza(doc, pessoa):
         proteina["dias"] = {}
     if not isinstance(doc.get("tomadas"), dict):
         doc["tomadas"] = {}
+    for lista in ("documentos", "migracoes"):
+        if not isinstance(doc.get(lista), list):
+            doc[lista] = []
     doc.setdefault("plano", None)
     if not isinstance(doc.get("revisao"), int):
         doc["revisao"] = 0
     return doc
+
+
+def aplica_atualizacoes():
+    """Aplica uma vez cada api/saude-inicial/atualizacoes/*.json às pessoas que ela cita."""
+    pasta = os.path.join(INICIAL_DIR, "atualizacoes")
+    if not os.path.isdir(pasta):
+        return
+    for nome in sorted(os.listdir(pasta)):
+        if not nome.endswith(".json"):
+            continue
+        with open(os.path.join(pasta, nome), encoding="utf-8") as fh:
+            atualizacao = json.load(fh)
+        uid, pessoa = atualizacao["id"], atualizacao["pessoa"]
+        if not os.path.exists(caminho(pessoa)):
+            continue
+        with trava:
+            doc = le(pessoa)
+            if uid in doc["migracoes"]:
+                continue
+            for modalidade in atualizacao.get("modalidades", []):
+                item = valida(ESQUEMAS["modalidades"], modalidade)
+                item["id"] = modalidade["id"]
+                doc["modalidades"] = [m for m in doc["modalidades"] if m.get("id") != item["id"]] + [item]
+            padrao = atualizacao.get("semModalidade")
+            if padrao:
+                for colecao in ("medicamentos", "exames", "consultas", "pendencias"):
+                    for item in doc[colecao]:
+                        if not item.get("modalidade"):
+                            item["modalidade"] = padrao
+                for chave in ("peso", "proteina"):
+                    if not doc[chave].get("modalidade"):
+                        doc[chave]["modalidade"] = padrao
+                if doc.get("plano") and not doc["plano"].get("modalidade"):
+                    doc["plano"]["modalidade"] = padrao
+            for colecao, itens in atualizacao.get("itens", {}).items():
+                existentes = {i.get("id") for i in doc[colecao]}
+                for bruto in itens:
+                    if bruto["id"] in existentes:
+                        continue
+                    item = valida(ESQUEMAS[colecao], bruto, PADROES[colecao])
+                    item["id"] = bruto["id"]
+                    doc[colecao].append(item)
+            doc["migracoes"].append(uid)
+            grava(doc)
+            print(f"atualização {uid} aplicada a {pessoa}", file=sys.stderr)
+
+
+def pasta_arquivos(pessoa):
+    return os.path.join(DADOS_DIR, "arquivos", pessoa)
 
 
 def le(pessoa):
@@ -325,10 +412,69 @@ class Handler(BaseHTTPRequestHandler):
         m = ROTA_PESSOA.match(rota)
         if m:
             return self._trata(lambda: le(m.group(1)))
+        m = ROTA_DOCUMENTO.match(rota)
+        if m:
+            return self._envia_documento(*m.groups())
         self._envia(404, {"erro": "rota inexistente"})
+
+    def _envia_documento(self, pessoa, doc_id):
+        try:
+            meta = next((d for d in le(pessoa)["documentos"] if d.get("id") == doc_id), None)
+        except NaoEncontrado as e:
+            return self._envia(404, {"erro": str(e)})
+        arquivo = meta and os.path.join(pasta_arquivos(pessoa), meta["arquivo"])
+        if not arquivo or not os.path.exists(arquivo):
+            return self._envia(404, {"erro": "documento inexistente"})
+        with open(arquivo, "rb") as fh:
+            dados = fh.read()
+        nome = meta["nome"] + "." + TIPOS_ARQUIVO.get(meta["tipo"], "bin")
+        self.send_response(200)
+        self.send_header("Content-Type", meta["tipo"])
+        self.send_header("Content-Length", str(len(dados)))
+        self.send_header("Content-Disposition", "inline; filename*=UTF-8''" + quote(nome))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(dados)
+
+    def _recebe_documento(self, pessoa, doc_id):
+        tipo = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if tipo not in TIPOS_ARQUIVO:
+            raise ErroPedido("envie um PDF ou uma imagem (JPG, PNG, HEIC ou WEBP)")
+        tamanho = int(self.headers.get("Content-Length") or 0)
+        if tamanho <= 0:
+            raise ErroPedido("arquivo vazio")
+        if tamanho > MAX_ARQUIVO:
+            raise ErroPedido("arquivo com mais de 15 MB")
+        dados = self.rfile.read(tamanho)
+        meta = {
+            "id": doc_id,
+            "nome": texto(160, True)("nome", unquote(self.headers.get("X-Nome") or "")),
+            "modalidade": id_ou_vazio("modalidade", self.headers.get("X-Modalidade") or ""),
+            "data": data_ou_vazio("data", self.headers.get("X-Data") or ""),
+            "tipo": tipo,
+            "tamanho": tamanho,
+            "arquivo": f"{doc_id}.{TIPOS_ARQUIVO[tipo]}",
+            "enviadoEm": agora(),
+        }
+        le(pessoa)  # 404 antes de gravar o arquivo
+        pasta = pasta_arquivos(pessoa)
+        os.makedirs(pasta, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(prefix=".doc-", dir=pasta)
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(dados)
+        os.replace(tmp, os.path.join(pasta, meta["arquivo"]))
+
+        def muda(doc):
+            doc["documentos"] = [d for d in doc["documentos"] if d.get("id") != doc_id] + [meta]
+        return altera(pessoa, muda)
 
     def do_PUT(self):
         rota = self.path.split("?", 1)[0]
+
+        m = ROTA_DOCUMENTO.match(rota)
+        if m:
+            return self._trata(lambda: self._recebe_documento(*m.groups()))
 
         m = ROTA_ITEM.match(rota)
         if m:
@@ -422,11 +568,24 @@ class Handler(BaseHTTPRequestHandler):
         if m:
             pessoa, data = m.groups()
             return self._trata(lambda: altera(pessoa, lambda doc: doc["peso"]["registros"].pop(data, None)))
+        m = ROTA_DOCUMENTO.match(rota)
+        if m:
+            pessoa, doc_id = m.groups()
+
+            def muda(doc):
+                for d in doc["documentos"]:
+                    if d.get("id") == doc_id:
+                        arquivo = os.path.join(pasta_arquivos(pessoa), d["arquivo"])
+                        if os.path.exists(arquivo):
+                            os.unlink(arquivo)
+                doc["documentos"] = [d for d in doc["documentos"] if d.get("id") != doc_id]
+            return self._trata(lambda: altera(pessoa, muda))
         self._envia(404, {"erro": "rota inexistente"})
 
 
 def main():
     semeia()
+    aplica_atualizacoes()
     servidor = ThreadingHTTPServer((BIND, PORT), Handler)
     print(f"API de saúde em http://{BIND}:{PORT}, dados em {DADOS_DIR}", file=sys.stderr)
     servidor.serve_forever()
