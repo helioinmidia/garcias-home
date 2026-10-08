@@ -1,0 +1,20 @@
+{
+  "id": "2026-10-retorno-urologia",
+  "pessoa": "helio",
+  "descricao": "Retorno da Urologia, com os dados copiados da consulta de 30/09/2026.",
+  "itens": {
+    "consultas": [
+      {
+        "id": "consulta-urologia-retorno",
+        "modalidade": "urologia",
+        "data": "",
+        "hora": "",
+        "profissional": "Dr. Bruno Bertoni Ferraz",
+        "especialidade": "Urologia",
+        "local": "QOR Médica · Av. Sete de Setembro, 4698, sala 1505, Batel, Curitiba - PR",
+        "status": "a-agendar",
+        "resumo": "Retorno da consulta de 30/09/2026, com data a combinar. Levar os resultados dos exames de sangue (hormônios e PSA) pedidos nessa consulta."
+      }
+    ]
+  }
+}
