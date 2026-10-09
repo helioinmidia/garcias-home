@@ -39,8 +39,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--s1); }
 
 /* Cabeçalho em degradê. */
-.topo { position: sticky; top: 0; z-index: 10; background: var(--hero); color: #fff; box-shadow: 0 6px 24px rgba(42, 30, 120, 0.25); }
-.topo-in { max-width: 1160px; margin: 0 auto; padding: 18px 16px 0; }
+.topo { position: relative; background: var(--hero); color: #fff; box-shadow: 0 6px 24px rgba(42, 30, 120, 0.25); }
+.topo-in { max-width: 1240px; margin: 0 auto; padding: 18px 16px 0; }
 .topo a { color: #fff; }
 .titulo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .titulo a { font-weight: 700; text-decoration: none; padding: 6px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); }
@@ -54,21 +54,54 @@ h1 { margin: 0; font-size: 30px; letter-spacing: -0.01em; }
 .pessoas button:hover { background: rgba(255, 255, 255, 0.24); }
 .pessoas button[aria-selected="true"] { background: #fff; color: #141824; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 800; color: #fff; background: var(--av); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }
-.secoes { display: flex; gap: 4px; overflow-x: auto; padding: 0 0 12px; scrollbar-width: none; }
-.secoes a { flex: none; padding: 5px 11px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; color: rgba(255, 255, 255, 0.85); }
-.secoes a:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
-.secoes { align-items: center; gap: 6px; position: relative; }
-.abas { flex: none; display: flex; gap: 2px; padding: 3px; margin-right: 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.18); }
 .aba { border: 0; cursor: pointer; border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.9); background: transparent; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .aba:hover { background: rgba(255, 255, 255, 0.14); }
 .aba[aria-selected="true"] { background: #fff; color: #141824; }
 .aba-n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 12px; background: var(--s5); color: #fff; }
+.rodape { max-width: 1240px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 13px; text-align: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Menu em blocos. Tela larga: coluna à esquerda, fixa enquanto a página rola. */
+.corpo { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 0 4px; align-items: start; padding: 0 16px; }
+.menu { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: 22px 0 22px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
+.bloco { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px 8px 8px; box-shadow: var(--shadow); }
+.bloco h2 { margin: 0 6px 6px; display: flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.bloco .ico, .secoes .ico { width: 24px; height: 24px; border-radius: 8px; display: inline-grid; place-items: center; color: var(--cor); background: color-mix(in srgb, var(--cor) 16%, var(--card)); }
+.bloco .ico svg, .secoes .ico svg { width: 15px; height: 15px; }
+.bloco.unico { padding: 6px; }
+.bloco button > span:first-child { display: inline-flex; align-items: center; gap: 10px; }
+.bloco.unico .ico { width: 26px; height: 26px; }
+.bloco button[aria-current="page"] .ico { background: color-mix(in srgb, var(--cor) 30%, var(--text)); }
+.nome-curto { display: none; }
+.bloco ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.bloco button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 10px;
+  background: none; color: var(--text); font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; }
+.bloco button:hover { background: var(--soft); }
+.bloco button[aria-current="page"] { background: var(--text); color: var(--card); }
+.corpo main { max-width: none; margin: 0; padding: 22px 0 64px 16px; }
+.corpo main.estreita { max-width: 880px; }
+.secoes { display: none; }
+
+/* Telas estreitas: barra fixa no topo com os blocos e as seções do bloco aberto. */
+@media (max-width: 900px) {
+  .corpo { display: block; padding: 0; }
+  .menu { display: none; }
+  .corpo main { padding: 18px 16px 64px; margin: 0 auto; max-width: 1160px; }
+  .corpo main.estreita { max-width: 860px; }
+  .secoes { display: block; position: sticky; top: 0; z-index: 10; background: var(--hero); box-shadow: 0 6px 18px rgba(42, 30, 120, 0.25); padding: 8px 12px 8px; }
+  .blocos-linha, .secoes-linha { max-width: 1160px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 4px; }
+  .blocos-linha .aba { padding: 6px 12px; }
+  .blocos-linha .ico { width: 20px; height: 20px; background: none; color: inherit; }
+  .secoes-linha { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.2); gap: 2px 6px; }
+  .secoes-linha button { border: 0; background: none; color: rgba(255, 255, 255, 0.85); font: inherit; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .secoes-linha button[aria-current="page"] { background: rgba(255, 255, 255, 0.22); color: #fff; box-shadow: inset 0 -2px 0 #fff; }
+}
 
 main.estreita { max-width: 860px; }
 main { max-width: 1160px; margin: 0 auto; padding: 22px 16px 64px; display: flex; flex-direction: column; gap: 20px; }
 .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 20px; align-items: start; }
 .coluna { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-.cartao { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 20px; box-shadow: var(--shadow); scroll-margin-top: 190px; min-width: 0; position: relative; overflow: hidden; }
+.cartao { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 20px; box-shadow: var(--shadow); scroll-margin-top: 110px; min-width: 0; position: relative; overflow: hidden; }
 .cartao::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--cor, var(--accent)); }
 .cartao > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
 .cartao > header .tit { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -312,7 +345,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .grafico-res .valor-txt.ultimo { fill: var(--text); font-weight: 800; font-size: 13px; }
 .med-ind { margin-top: 6px; align-items: center; }
 .med-ind > small { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.tag.ind { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; min-height: 32px; }
+.tag.ind { white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; min-height: 32px; }
 .tag.ind.ok { border-color: var(--ok); }
 .tag.ind.aviso { border-color: var(--warn); background: var(--warn-soft); }
 .tag.ind.ruim { border-color: var(--bad); background: var(--bad-soft); }
@@ -376,11 +409,14 @@ dialog h2 { margin: 0; font-size: 20px; }
 
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px);
   background: var(--text); color: var(--card); padding: 10px 16px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: var(--shadow); }
-.rodape { max-width: 1160px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 14px; }
 
 @media (max-width: 560px) {
-  /* No celular o cabeçalho rola junto com a página: fixo, ele tomaria um terço da tela. */
-  .topo { position: static; }
+  /* Pessoas sempre à vista: só o primeiro nome. */
+  .pessoas { flex-wrap: wrap; overflow: visible; gap: 8px; padding: 12px 0 10px; }
+  .pessoas button { min-height: 40px; padding: 4px 14px 4px 4px; gap: 8px; }
+  .avatar { width: 32px; height: 32px; font-size: 13px; }
+  .nome-longo { display: none; }
+  .nome-curto { display: inline; }
   .topo-in { padding-top: 14px; }
   .cartao { scroll-margin-top: 12px; padding: 16px; }
   h1 { font-size: 23px; }

@@ -173,7 +173,8 @@
     nav.textContent = '';
     pessoas.forEach(function (p, i) {
       add(nav, h('button', { type: 'button', role: 'tab', 'aria-selected': String(p.id === pessoaId), onclick: function () { escolhe(p.id); } },
-        h('span', { class: 'avatar', style: '--av:' + CORES_PESSOA[i % CORES_PESSOA.length], 'aria-hidden': 'true' }, iniciais(p.nome)), p.nome));
+        h('span', { class: 'avatar', style: '--av:' + CORES_PESSOA[i % CORES_PESSOA.length], 'aria-hidden': 'true' }, iniciais(p.nome)),
+        h('span', { class: 'nome-longo' }, p.nome), h('span', { class: 'nome-curto', 'aria-hidden': 'true' }, p.nome.length <= 8 ? p.nome : p.nome.split(' ')[0])));
     });
   }
 
@@ -209,23 +210,70 @@
     var lista = vistas();
     var atual = lista.filter(function (v) { return v[0] === vista; })[0];
     if (!atual) { vista = 'hoje'; atual = lista[0]; }
-    var nav = $('secoes');
-    nav.textContent = '';
-    lista.forEach(function (v) {
-      add(nav, h('button', { type: 'button', role: 'tab', class: 'aba', 'aria-selected': String(v[0] === vista), onclick: function () { trocaVista(v[0]); } },
-        v[1], v[5] ? h('span', { class: 'aba-n' }, v[5]) : null));
-    });
-    // Mantém a seção escolhida visível no menu (só rolagem horizontal do menu, nunca da página).
-    var sel = nav.querySelector('[aria-selected="true"]');
-    if (sel && (sel.offsetLeft < nav.scrollLeft || sel.offsetLeft + sel.offsetWidth > nav.scrollLeft + nav.clientWidth)) {
-      nav.scrollLeft = sel.offsetLeft - 16;
-    }
+    desenhaMenu(lista);
     var pag = $('pagina');
     var rolagem = window.pageYOffset;
     pag.textContent = '';
     pag.className = atual[4] ? 'larga' : 'estreita';
     add(pag, atual[6] ? barraFiltro() : null, atual[2]());
     window.scrollTo(0, rolagem);
+  }
+
+  // Menu em blocos. [id, nome, ícone (de ICONES), seções do bloco com o nome curto dentro dele]
+  var BLOCOS = [
+    ['hoje', 'Hoje', 'hoje-titulo', [['hoje', 'Hoje']]],
+    ['consultas', 'Consultas', 'consultas-titulo', [['proximas', 'Próximas'], ['consultas', 'Histórico'], ['pendencias', 'Pendências'], ['procedimentos', 'Procedimentos']]],
+    ['remedios', 'Remédios', 'meds-titulo', [['medicamentos', 'Medicamentos']]],
+    ['exames', 'Exames', 'exames-titulo', [['exames', 'Pedidos'], ['resultados', 'Resultados'], ['documentos', 'Documentos']]],
+    ['corpo', 'Corpo e dieta', 'peso-titulo', [['peso', 'Peso'], ['bioimpedancia', 'Bioimpedância'], ['plano', 'Plano alimentar']]],
+    ['ajustes', 'Ajustes', 'mod-titulo', [['modalidades', 'Modalidades']]],
+  ];
+  var ultimaDoBloco = {}; // última seção aberta em cada bloco: voltar ao bloco reabre ela
+  function iconeSvg(id) {
+    var ic = ICONES[id];
+    return ic ? h('span', { class: 'ico', style: '--cor:' + ic[0], 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ic[1] + '</svg>' }) : null;
+  }
+  function desenhaMenu(lista) {
+    var porId = {};
+    lista.forEach(function (v) { porId[v[0]] = v; });
+    var blocos = BLOCOS.map(function (b) {
+      var itens = b[3].filter(function (it) { return porId[it[0]]; }).map(function (it) { return { id: it[0], nome: it[1], n: porId[it[0]][5] || 0 }; });
+      return { id: b[0], nome: b[1], icone: b[2], itens: itens, n: itens.reduce(function (t, it) { return t + it.n; }, 0) };
+    }).filter(function (b) { return b.itens.length; });
+    var atual = blocos.filter(function (b) { return b.itens.some(function (it) { return it.id === vista; }); })[0] || blocos[0];
+    ultimaDoBloco[atual.id] = vista;
+    function contador(n) { return n ? h('span', { class: 'aba-n' }, n) : null; }
+    // Tela larga: todos os blocos sempre à vista, cada um com as suas seções.
+    var menu = $('menu');
+    menu.textContent = '';
+    blocos.forEach(function (b) {
+      // Bloco de uma seção só (Hoje, Remédios, Ajustes): um botão, sem título repetido.
+      if (b.itens.length === 1) {
+        var it = b.itens[0];
+        add(menu, h('section', { class: 'bloco unico' }, h('button', { type: 'button', 'aria-current': it.id === vista ? 'page' : null, onclick: function () { trocaVista(it.id); } },
+          h('span', null, iconeSvg(b.icone), it.nome), contador(it.n))));
+        return;
+      }
+      add(menu, h('section', { class: 'bloco' + (b === atual ? ' atual' : '') },
+        h('h2', null, iconeSvg(b.icone), b.nome),
+        h('ul', null, b.itens.map(function (it) {
+          return h('li', null, h('button', { type: 'button', 'aria-current': it.id === vista ? 'page' : null, onclick: function () { trocaVista(it.id); } }, h('span', null, it.nome), contador(it.n)));
+        }))));
+    });
+    // Celular: uma linha com os blocos e, embaixo, as seções do bloco aberto (sem rolagem lateral).
+    var nav = $('secoes');
+    nav.textContent = '';
+    add(nav, h('div', { class: 'blocos-linha' }, blocos.map(function (b) {
+      return h('button', { type: 'button', class: 'aba', 'aria-selected': String(b === atual), onclick: function () {
+        var alvo = ultimaDoBloco[b.id];
+        trocaVista(b.itens.some(function (it) { return it.id === alvo; }) ? alvo : b.itens[0].id);
+      } }, b.id === 'ajustes' ? h('span', { class: 'sr' }, b.nome) : b.nome, b.id === 'ajustes' ? iconeSvg(b.icone) : null, contador(b.n));
+    })));
+    if (atual.itens.length > 1) {
+      add(nav, h('div', { class: 'secoes-linha' }, atual.itens.map(function (it) {
+        return h('button', { type: 'button', 'aria-current': it.id === vista ? 'page' : null, onclick: function () { trocaVista(it.id); } }, it.nome, contador(it.n));
+      })));
+    }
   }
 
   function trocaVista(nova) {
@@ -323,8 +371,8 @@
       return h('li', null, h('button', { type: 'button', style: mod ? '--mod:' + corMod(mod.id) : null, onclick: function () { trocaVista('proximas'); } },
         h('span', { class: 'prox-dias' }, faltam == null ? h('b', null, '—') : faltam === 0 ? h('b', null, 'Hoje') : faltam === 1 ? h('b', null, 'Amanhã') : [h('b', null, String(faltam)), h('small', null, 'dias')]),
         h('span', { class: 'prox-txt' },
-          h('b', null, p.profissional, mod ? h('span', { class: 'mudo' }, ' · ' + mod.nome) : null),
-          h('small', null, p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : 'Data a definir')),
+          h('b', null, p.profissional),
+          h('small', null, [mod ? mod.nome : '', p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : 'Data a definir'].filter(Boolean).join(' · '))),
         h('span', { class: 'chip ' + (p.status === 'agendada' ? 'ok' : 'aviso') }, p.status === 'agendada' ? 'Agendada' : 'A agendar')));
     })));
     return c;

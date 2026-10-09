@@ -22,16 +22,19 @@
         <a href="/">← Casa</a>
       </div>
       <nav class="pessoas" id="pessoas" role="tablist" aria-label="Pessoas"></nav>
-      <nav class="secoes" id="secoes" aria-label="Seções"></nav>
     </div>
   </header>
 
-  <main id="pagina">
-    <p class="vazio">Carregando…</p>
-  </main>
+  <!-- Menu em blocos: na tela larga, coluna fixa ao lado; no celular, barra fixa no topo (bloco + seções dele). -->
+  <nav class="secoes" id="secoes" aria-label="Seções"></nav>
+  <div class="corpo">
+    <nav class="menu" id="menu" aria-label="Seções"></nav>
+    <main id="pagina">
+      <p class="vazio">Carregando…</p>
+    </main>
+  </div>
+  <p class="rodape">Siga sempre a receita e as orientações dos médicos.</p>
 
-  <p class="rodape">Os dados ficam gravados no servidor da casa e aparecem iguais em todos os aparelhos da rede.
-    Esta página só organiza o acompanhamento: siga sempre a receita e as orientações dos médicos.</p>
 
   <dialog id="dialogo">
     <form method="dialog" id="dialogo-form" novalidate></form>
