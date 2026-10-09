@@ -150,7 +150,7 @@ details.resumo .tags, details.resumo .topicos { margin-top: 8px; }
 .barra.ok i { background: var(--ok); }
 
 /* Proteína: anel de progresso. */
-.proteina { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin-top: 8px; padding: 14px; border-radius: 16px; background: var(--soft); }
+.proteina { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin: 0 0 14px; padding: 14px; border-radius: 16px; background: var(--soft); }
 .anel { width: 116px; height: 116px; display: block; }
 .anel .trilho { stroke: var(--line); }
 .anel .arco { stroke: url(#grad-prot); transition: stroke-dasharray 0.5s; }
@@ -242,6 +242,19 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
   .faixa { grid-template-columns: 1fr auto; }
   .faixa-trilho { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* Hoje: próximas consultas em linhas. */
+.hoje-sub { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.prox-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.prox-lista button { width: 100%; display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: inherit; font: inherit; cursor: pointer;
+  box-shadow: inset 4px 0 0 var(--mod, var(--s1)); }
+.prox-lista button:hover { background: var(--soft); }
+.prox-dias { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.prox-dias b { font-size: 20px; }
+.prox-dias small { font-size: 11px; color: var(--muted); font-weight: 600; }
+.prox-txt b { display: block; font-size: 15px; }
+.prox-txt small { display: block; font-size: 13px; color: var(--muted); }
 
 /* Resultados de exames. */
 .filtro-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 12px; background: var(--soft); color: var(--muted); }

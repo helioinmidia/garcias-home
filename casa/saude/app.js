@@ -183,6 +183,7 @@
     var aTomar = doc.medicamentos.filter(function (m) { return tomaEm(m, k) && !tomou(m, k); }).length;
     var pend = doc.pendencias.filter(function (x) { return passa(x) && !x.feito; }).length;
     var exames = doc.exames.filter(function (x) { return passa(x) && x.status !== 'feito'; }).length;
+    var diaDePesar = doc.peso.ativo && (doc.peso.dias || []).indexOf(deChave(k).getDay()) >= 0 && !(doc.peso.registros || {})[k];
     return [
       ['hoje', 'Hoje', cartaoHoje, true, false, aTomar, false],
       ['proximas', 'Próximas consultas', cartaoConsulta, true, false, 0, true],
@@ -191,12 +192,12 @@
       ['exames', 'Exames', cartaoExames, true, false, exames, true],
       ['consultas', 'Consultas', cartaoConsultas, true, false, 0, true],
       ['procedimentos', 'Procedimentos', cartaoProcedimentos, (doc.procedimentos || []).length > 0, false, 0, true],
-      ['peso', 'Peso', cartaoPeso, !!doc.peso.ativo, true, 0, false],
+      ['peso', 'Peso', cartaoPeso, !!doc.peso.ativo, true, diaDePesar ? 1 : 0, false],
       // Bioimpedância é da Medicina Esportiva: sem barra de modalidades.
       ['bioimpedancia', 'Bioimpedância', cartaoComposicao, true, true, 0, false],
       // Resultados juntam laudos de várias modalidades (a glicose aparece em todos): sem barra de modalidades.
       ['resultados', 'Resultados', cartaoResultados, true, true, resultados().filter(foraDaRef).length, false],
-      ['plano', 'Plano alimentar', cartaoPlano, !!doc.plano, true, 0, false],
+      ['plano', 'Plano alimentar', cartaoPlano, !!doc.plano || !!doc.proteina.ativo, true, 0, false],
       ['documentos', 'Documentos', cartaoDocumentos, true, false, 0, true],
       ['modalidades', 'Modalidades', cartaoModalidades, true, false, 0, false],
     ].filter(function (v) { return v[3]; });
@@ -309,11 +310,23 @@
       add(c, h('div', { class: 'alerta' }, h('b', null, 'Falta definir: '), aDefinir.map(function (m) { return m.nome; }).join(', '),
         '. Abra o item em Medicamentos e informe a dose e a frequência da receita.'));
     }
-    if (doc.peso.ativo && passaOuSem(doc.peso) && (doc.peso.dias || []).indexOf(new Date().getDay()) >= 0 && !(doc.peso.registros || {})[k]) {
-      add(c, h('div', { class: 'alerta' }, h('b', null, 'Dia de pesagem. '), doc.peso.instrucoes || '', ' ',
-        h('a', { href: '#' + pessoaId + '/peso' }, 'Registrar o peso')));
-    }
-    if (doc.proteina.ativo && passaOuSem(doc.proteina)) add(c, blocoProteina());
+    // Próximas consultas: uma linha por modalidade (o detalhe fica na seção Próximas consultas).
+    var proximas = [];
+    modalidades().forEach(function (m) { var p = proximaDe(doc.consultas.filter(function (x) { return x.modalidade === m.id; })); if (p) proximas.push(p); });
+    var semMod = proximaDe(doc.consultas.filter(function (x) { return !modalidade(x.modalidade); }));
+    if (semMod) proximas.push(semMod);
+    proximas.sort(function (a, b) { return (a.data || '9999') < (b.data || '9999') ? -1 : 1; });
+    add(c, h('h3', { class: 'hoje-sub' }, 'Próximas consultas'));
+    if (!proximas.length) add(c, h('p', { class: 'vazio' }, 'Nenhuma consulta marcada.'));
+    else add(c, h('ul', { class: 'prox-lista' }, proximas.map(function (p) {
+      var faltam = p.data ? diasEntre(k, p.data) : null, mod = modalidade(p.modalidade);
+      return h('li', null, h('button', { type: 'button', style: mod ? '--mod:' + corMod(mod.id) : null, onclick: function () { trocaVista('proximas'); } },
+        h('span', { class: 'prox-dias' }, faltam == null ? h('b', null, '—') : faltam === 0 ? h('b', null, 'Hoje') : faltam === 1 ? h('b', null, 'Amanhã') : [h('b', null, String(faltam)), h('small', null, 'dias')]),
+        h('span', { class: 'prox-txt' },
+          h('b', null, p.profissional, mod ? h('span', { class: 'mudo' }, ' · ' + mod.nome) : null),
+          h('small', null, p.data ? dataLonga(p.data) + (p.hora ? ' às ' + p.hora : '') : 'Data a definir')),
+        h('span', { class: 'chip ' + (p.status === 'agendada' ? 'ok' : 'aviso') }, p.status === 'agendada' ? 'Agendada' : 'A agendar')));
+    })));
     return c;
   }
 
@@ -1237,9 +1250,12 @@
   var CORES_PRATO = [['var(--s3)', true], ['var(--s2)', false], ['var(--s1)', false]];
   var TINTAS_REFEICAO = ['var(--s4)', 'var(--s2)', 'var(--s3)', 'var(--s5)', 'var(--s6)', 'var(--s1)'];
   function cartaoPlano() {
-    var p = doc.plano;
+    var p = doc.plano || {};
     var c = add(cartao('plano-sec', 'plano-titulo'),
       cabecalho(p.titulo || 'Plano alimentar', 'plano-titulo', h('span', { class: 'mudo' }, [(modalidade(p.modalidade) || {}).nome, p.autor, p.data ? dataCurta(p.data) : ''].filter(Boolean).join(' · '))));
+    // Proteína do dia: faz parte da alimentação (saiu do cartão Hoje, que ficou só com remédios e consultas).
+    if (doc.proteina.ativo) add(c, blocoProteina());
+    if (!doc.plano) return c;
     if (p.objetivo) add(c, h('p', { class: 'objetivo' }, h('b', null, 'Objetivo: '), p.objetivo));
     var grade = h('div', { class: 'plano-grade' });
     (p.secoes || []).forEach(function (s, n) {
