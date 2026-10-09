@@ -34,10 +34,10 @@ else
   echo "==> Blizzard não encontrada em $BLIZZARD_DIR; seguindo só com o proxy."
 fi
 
-echo "==> Proxy de entrada (Caddy) e API da rotina"
+echo "==> Proxy de entrada (Caddy) e APIs da casa"
 cd "$SERVIDOR_DIR"
 # Dono dos arquivos gravados pelas APIs (pasta dados/, fora do git).
-mkdir -p dados/rotina dados/saude
+mkdir -p dados/rotina dados/saude dados/agenda
 if ! grep -q '^CASA_UID=' .env 2>/dev/null; then
   printf 'CASA_UID=%s\nCASA_GID=%s\n' "$(id -u)" "$(id -g)" >> .env
 fi
@@ -46,7 +46,7 @@ sudo docker compose up -d --remove-orphans
 sudo docker compose restart caddy
 # As APIs leem o código de api/ montado como volume: reiniciar carrega a versão nova (e aplica as
 # atualizações de dados de api/saude-inicial/atualizacoes, uma vez só).
-sudo docker compose restart rotina-api saude-api
+sudo docker compose restart rotina-api saude-api agenda-api
 
 cat <<MSG
 

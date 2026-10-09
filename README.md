@@ -13,6 +13,7 @@ separa as aplicações pelo nome.
 | `http://casa.blizzard.net/` | Portal da casa, com a lista das aplicações | `casa/index.html` |
 | `http://casa.blizzard.net/rotina/` | Rotina da Ana Liz (link permanente do iPad) | `casa/rotina/` |
 | `http://casa.blizzard.net/saude/` | Acompanhamento Médico (Ana Liz, Erika e Helio) | `casa/saude/` |
+| `http://casa.blizzard.net/agenda/` | Agenda: compromissos e tarefas, pessoais e profissionais | `casa/agenda/` |
 | `http://casa.blizzard.net/manutencao/` | Manutenção da casa (cronograma a criar) | `casa/manutencao/` |
 
 O IP do Pi (`http://10.255.200.100/`), ou qualquer outro nome, abre o mesmo portal.
@@ -266,16 +267,46 @@ curl -s -X POST -H 'Content-Type: application/json' -H 'Host: casa.blizzard.net'
 
 Para outra pessoa da casa, troque `helio` no endereço pelo id dela (`erika`, `ana-liz`).
 
+## Agenda
+
+`casa.blizzard.net/agenda`: compromissos (com data e hora) e tarefas (com prazo), separados em **Pessoal**
+e **Profissional**, uma agenda para cada pessoa da casa.
+
+**Seções:**
+
+- **Hoje:** os compromissos do dia, as tarefas para hoje (e as atrasadas) e uma prévia de amanhã.
+- **Semana** e **Mês:** a agenda dia a dia. No Mês, tocar num dia mostra a lista dele.
+- **Tarefas:** atrasadas, hoje, próximos 7 dias, depois e sem prazo; as feitas ficam recolhidas.
+- **Calendários:** os calendários do iPhone/Google ligados e o link para o iPhone assinar a agenda.
+
+O filtro Tudo · Pessoal · Profissional vale para todas as seções.
+
+**Calendário do iPhone e do Google (nos dois sentidos):**
+
+- **Ler:** em Calendários → "+ Calendário", cole o link privado (iCal) do calendário. A página baixa cada um
+  a cada 15 minutos e mostra os compromissos dele, só para leitura, com o ícone do iPhone.
+  - iCloud: app Calendário → Calendários → ⓘ → "Calendário Público" → Compartilhar Link (`webcal://…`).
+  - Google: calendar.google.com → Configurações → o calendário → "Endereço secreto no formato iCal".
+- **Publicar:** a seção Calendários mostra um link de assinatura. No iPhone: Ajustes → Apps → Calendário →
+  Contas de Calendário → Adicionar Conta → Outra → **Adicionar Calendário Assinado**. Os compromissos e as
+  tarefas com prazo criados na página aparecem no app Calendário, com os lembretes. O iPhone só atualiza
+  esse calendário no Wi-Fi de casa. "Trocar o link" invalida o antigo.
+
+**Onde ficam os dados:** `dados/agenda/<pessoa>.json` (eventos, tarefas, calendários ligados e a chave do
+link de assinatura) e `dados/agenda/externos/` (cópia dos calendários lidos). A API é `api/agenda.py`, na
+porta 8083; ela precisa de internet para baixar os calendários. Como a API de saúde, ela se reinicia
+sozinha depois de um `git pull`.
+
 ## Publicar uma aplicação com servidor próprio
 
 Cada aplicação vive no próprio repositório, com o próprio `docker compose`, e escuta **só em
-`127.0.0.1`**, numa porta livre (8083, 8084…). Assim ela não aparece na rede sem passar pelo proxy.
+`127.0.0.1`**, numa porta livre (8084, 8085…). Assim ela não aparece na rede sem passar pelo proxy.
 
-1. Suba a aplicação, por exemplo em `127.0.0.1:8083`.
+1. Suba a aplicação, por exemplo em `127.0.0.1:8084`.
 2. Acrescente um bloco ao `Caddyfile`:
    ```caddy
    http://manutencao.blizzard.net {
-   	reverse_proxy 127.0.0.1:8083
+   	reverse_proxy 127.0.0.1:8084
    }
    ```
    Para ela ficar dentro do portal (`casa.blizzard.net/<nome>/`), use `handle_path /<nome>/*` com o
@@ -294,6 +325,7 @@ Cada aplicação vive no próprio repositório, com o próprio `docker compose`,
 | 8080 | nginx da Blizzard | não (127.0.0.1) |
 | 8081 | API da rotina (este repositório) | não (127.0.0.1) |
 | 8082 | API do acompanhamento médico (este repositório) | não (127.0.0.1) |
+| 8083 | API da agenda (este repositório) | não (127.0.0.1) |
 | 8787 | API de configuração da Blizzard | não (127.0.0.1) |
 | 8099 | ponte do Home Assistant da Blizzard | não (127.0.0.1) |
 | 1984 | go2rtc, API e painel | sim |

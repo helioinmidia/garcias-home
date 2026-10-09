@@ -57,6 +57,27 @@ services:
       - BIND=127.0.0.1
       - TZ=America/Sao_Paulo
 
+  # API da agenda: um arquivo por pessoa em dados/agenda/ (nasce de api/agenda-inicial/). Baixa os
+  # calendários do iPhone/Google pela internet (link iCal) e publica a assinatura para o app Calendário.
+  agenda-api:
+    image: python:3.12-alpine
+    container_name: garcias-home-agenda
+    restart: unless-stopped
+    network_mode: host
+    user: "${CASA_UID:-1000}:${CASA_GID:-1000}"
+    command: ["python", "/app/agenda.py"]
+    volumes:
+      - ./api:/app:ro
+      - ./dados:/dados
+      # Fusos horários para converter os horários dos calendários (a imagem alpine não os traz).
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    environment:
+      - DADOS_DIR=/dados/agenda
+      - INICIAL_DIR=/app/agenda-inicial
+      - PORT=8083
+      - BIND=127.0.0.1
+      - TZ=America/Sao_Paulo
+
 volumes:
   caddy-data:
   caddy-config:

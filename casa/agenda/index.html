@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+  <link rel="apple-touch-icon" href="/agenda/icon.png">
+  <link rel="icon" href="/agenda/icon.png">
+  <link rel="stylesheet" href="agenda.css">
+  <title>Agenda</title>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo-in">
+      <div class="titulo">
+        <div>
+          <p class="eyebrow" id="hoje">Casa</p>
+          <h1>Agenda</h1>
+        </div>
+        <a href="/">← Casa</a>
+      </div>
+      <nav class="pessoas" id="pessoas" role="tablist" aria-label="Pessoas"></nav>
+    </div>
+  </header>
+
+  <!-- Seções: na tela larga, coluna fixa ao lado; no celular, barra fixa no topo. -->
+  <nav class="secoes" id="secoes" aria-label="Seções"></nav>
+  <div class="corpo">
+    <nav class="menu" id="menu" aria-label="Seções"></nav>
+    <main id="pagina">
+      <p class="vazio">Carregando…</p>
+    </main>
+  </div>
+
+  <dialog id="dialogo">
+    <form method="dialog" id="dialogo-form" novalidate></form>
+  </dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
